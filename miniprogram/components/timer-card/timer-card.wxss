@@ -1,0 +1,150 @@
+/* 计时器组件：本身透明，由外层 .timer-hero 提供深色底 */
+.tc {
+  position: relative;
+  z-index: 1;
+}
+
+.tc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-kicker {
+  font-size: 22rpx;
+  letter-spacing: 3rpx;
+  color: rgba(247, 245, 240, 0.5);
+}
+
+/* 状态胶囊：半透明白底，running 时圆点点亮 */
+.tc-state {
+  display: flex;
+  align-items: center;
+  height: 44rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: rgba(247, 245, 240, 0.1);
+  color: rgba(247, 245, 240, 0.62);
+  font-size: 21rpx;
+  letter-spacing: 0.6rpx;
+}
+
+.tc-state.is-on {
+  background: rgba(158, 214, 180, 0.16);
+  color: #a9d9bd;
+}
+
+.tc-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+  background: rgba(247, 245, 240, 0.4);
+}
+
+.tc-state.is-on .tc-dot {
+  background: #86d3a6;
+  box-shadow: 0 0 0 6rpx rgba(134, 211, 166, 0.16);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4rpx rgba(134, 211, 166, 0.14); }
+  50% { box-shadow: 0 0 0 10rpx rgba(134, 211, 166, 0.05); }
+}
+
+/* 数字是这个页面的主角，用等宽数字保证每秒跳动不左右抖 */
+.tc-time {
+  margin-top: 22rpx;
+  font-size: 104rpx;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 2rpx;
+  color: #f7f5f0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-family: "SF Mono", "DIN Alternate", Menlo, Consolas, monospace;
+}
+
+.tc-time.is-idle {
+  color: rgba(247, 245, 240, 0.32);
+}
+
+.tc-meta {
+  margin-top: 24rpx;
+}
+
+.tc-meta-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+
+.tc-k {
+  width: 76rpx;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: rgba(247, 245, 240, 0.42);
+  letter-spacing: 1rpx;
+}
+
+.tc-v {
+  flex: 1;
+  min-width: 0;
+  font-size: 25rpx;
+  color: rgba(247, 245, 240, 0.86);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tc-tip {
+  margin-top: 18rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 16rpx;
+  background: rgba(214, 168, 96, 0.16);
+  color: #e8c88f;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.tc-btns {
+  display: flex;
+  align-items: center;
+  margin-top: 30rpx;
+}
+
+.tc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 29rpx;
+  letter-spacing: 0.6rpx;
+}
+
+.tc-btn.is-primary {
+  flex: 1;
+  background: #f7f5f0;
+  color: #24352e;
+  font-weight: 600;
+}
+
+.tc-btn.is-ghost {
+  width: 180rpx;
+  margin-left: 18rpx;
+  background: rgba(247, 245, 240, 0.09);
+  color: rgba(247, 245, 240, 0.72);
+}
+
+.tc-btn:active {
+  opacity: 0.86;
+  transform: scale(0.99);
+}
+
+.tc-hint {
+  margin-top: 22rpx;
+  font-size: 24rpx;
+  color: rgba(247, 245, 240, 0.46);
+}

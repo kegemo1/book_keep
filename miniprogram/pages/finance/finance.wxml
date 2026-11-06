@@ -1,0 +1,190 @@
+<view class="container">
+
+  <!-- 汇总 -->
+  <view class="sum-card">
+    <view class="row-between sum-head">
+      <text class="label-mono">本月收支</text>
+      <view class="chip-gold">
+        <text class="chip-gold-k">待收</text>
+        <text class="figure">¥{{summary.receivable || 0}}</text>
+      </view>
+    </view>
+
+    <view class="money-pair sum-money">
+      <view class="money-cell is-in">
+        <view class="money-cap"><view class="dot"></view><text>收入</text></view>
+        <view class="money-num figure">{{summary.monthIncome || 0}}</view>
+      </view>
+      <view class="money-divider"></view>
+      <view class="money-cell is-out">
+        <view class="money-cap"><view class="dot"></view><text>支出</text></view>
+        <view class="money-num figure">{{summary.monthExpense || 0}}</view>
+      </view>
+    </view>
+
+    <view class="add-btn" bindtap="openForm">
+      <text class="add-plus">＋</text>
+      <text>记一笔</text>
+    </view>
+  </view>
+
+  <!-- 支出类别环形图 -->
+  <view class="card" wx:if="{{hasRingData}}">
+    <view class="card-title">支出构成</view>
+    <view class="ring-wrap">
+      <view class="ring-chart" style="background: conic-gradient({{ringSegments}})">
+        <view class="ring-center">
+          <text class="ring-cny">¥</text>
+          <text class="ring-total figure">{{ringTotal}}</text>
+        </view>
+      </view>
+      <view class="ring-legend">
+        <view class="legend-item" wx:for="{{ringItems}}" wx:key="categoryName">
+          <view class="legend-dot" style="background:{{item.color}}"></view>
+          <text class="legend-name">{{item.categoryName}}</text>
+          <text class="legend-pct figure">{{item.ratio}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选 -->
+  <view class="seg">
+    <view class="seg-item {{filterType === '' ? 'active' : ''}}" data-type="" bindtap="onFilterChange">全部</view>
+    <view class="seg-item {{filterType === '0' ? 'active' : ''}}" data-type="0" bindtap="onFilterChange">收入</view>
+    <view class="seg-item {{filterType === '1' ? 'active' : ''}}" data-type="1" bindtap="onFilterChange">支出</view>
+  </view>
+
+  <!-- 账单 -->
+  <view class="card">
+    <view wx:if="{{records.length === 0 && !loading}}" class="empty">
+      <view class="empty-icon">¥</view>
+      还没有账单记录
+    </view>
+
+    <view class="bill" wx:for="{{records}}" wx:key="recordId">
+      <view class="bill-tile {{item.isIncome ? 'is-in' : 'is-out'}}">{{item.initial}}</view>
+
+      <view class="bill-body">
+        <view class="bill-line">
+          <text class="bill-cat">{{item.categoryText}}</text>
+          <text class="bill-amt figure {{item.isIncome ? 'is-in' : 'is-out'}}">
+            {{item.isIncome ? '+' : '−'}}{{item.amountText}}
+          </text>
+        </view>
+
+        <view class="bill-sub">
+          <text>{{item.projectName || '无项目'}}</text>
+          <text wx:if="{{item.counterparty}}"> · {{item.counterparty}}</text>
+        </view>
+
+        <view class="bill-foot">
+          <text class="bill-date figure">{{item.recordDate}}</text>
+          <text class="tag tag-gray" wx:if="{{item.settledText !== '0.00'}}">已结 {{item.settledText}}</text>
+        </view>
+
+        <view class="bill-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading">加载中…</view>
+    <view wx:elif="{{noMore && records.length > 0}}" class="loading">— 没有更多了 —</view>
+  </view>
+
+</view>
+
+<!-- 记一笔 -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="sheet" wx:if="{{showForm}}">
+  <view class="sheet-handle"></view>
+  <view class="sheet-head">
+    <text class="sheet-title">记一笔</text>
+    <text class="sheet-close" bindtap="closeForm">关闭</text>
+  </view>
+
+  <view class="type-switch">
+    <view class="type-item {{recordType === '1' ? 'is-out' : ''}}" data-type="1" bindtap="onTypeChange">支出</view>
+    <view class="type-item {{recordType === '0' ? 'is-in' : ''}}" data-type="0" bindtap="onTypeChange">收入</view>
+  </view>
+
+  <view class="form-row">
+    <text class="label">金额</text>
+    <input class="value input-right amount-input" type="digit" value="{{amount}}" placeholder="0.00" placeholder-class="ph" bindinput="onAmountInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">发生日期</text>
+    <picker mode="date" value="{{recordDate}}" bindchange="onDateChange">
+      <view class="value">{{recordDate}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">项目</text>
+    <picker mode="selector" range="{{projectNames}}" value="{{projectIndex}}" bindchange="onProjectChange">
+      <view class="value {{projectIndex < 0 ? 'placeholder' : ''}}">
+        {{projectIndex < 0 ? '请选择项目（可选）' : projectNames[projectIndex]}}
+      </view>
+    </picker>
+  </view>
+  <view class="field-tip">不选项目，这笔流水不会计入项目盈亏</view>
+
+  <view class="form-row">
+    <text class="label">类别</text>
+    <picker mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="value {{categoryIndex < 0 ? 'placeholder' : ''}}">
+        {{categoryIndex < 0 ? '请选择类别' : categoryNames[categoryIndex]}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">结算方式</text>
+    <picker mode="selector" range="{{payMethods}}" value="{{payMethodIndex}}" bindchange="onPayMethodChange">
+      <view class="value">{{payMethods[payMethodIndex]}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">已结算</text>
+    <input class="value input-right" type="digit" value="{{settledAmount}}" placeholder="未结算则留空" placeholder-class="ph" bindinput="onSettledInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">往来对象</text>
+    <input class="value input-right" value="{{counterparty}}" placeholder="客户/供应商（可选）" placeholder-class="ph" bindinput="onCounterpartyInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">税额</text>
+    <input class="value input-right" type="digit" value="{{taxAmount}}" placeholder="可留空" placeholder-class="ph" data-field="taxAmount" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">交易单号</text>
+    <input class="value input-right" value="{{tradeNo}}" placeholder="微信/支付宝单号，可留空" placeholder-class="ph" data-field="tradeNo" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">发票号</text>
+    <input class="value input-right" value="{{invoiceNo}}" placeholder="可留空" placeholder-class="ph" data-field="invoiceNo" bindinput="onInput" />
+  </view>
+
+  <view class="form-row voucher-row">
+    <text class="label">支付凭证</text>
+    <view class="voucher-pick" bindtap="onChooseVoucher">
+      <image wx:if="{{voucherUrl}}" class="voucher-img" src="{{voucherUrl}}" mode="aspectFill" />
+      <view wx:else class="voucher-empty">
+        <text class="voucher-plus">＋</text>
+        <text class="voucher-hint">上传截图</text>
+      </view>
+      <text wx:if="{{voucherUrl}}" class="voucher-del" catchtap="onRemoveVoucher">删除</text>
+    </view>
+  </view>
+
+  <view class="content-box">
+    <textarea class="content-input" placeholder="备注（可选）" placeholder-class="ph" maxlength="200" value="{{remark}}" bindinput="onRemarkInput" auto-height />
+  </view>
+
+  <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="submitRecord">提交</view>
+</view>

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.biz.mapper.BizWorkLogMapper">
+
+	<resultMap type="com.ruoyi.biz.domain.BizWorkLog" id="BizWorkLogResult">
+		<id     property="logId"       column="log_id"      />
+		<result property="userId"      column="user_id"     />
+		<result property="deptId"      column="dept_id"     />
+		<result property="projectId"   column="project_id"  />
+		<result property="taskId"      column="task_id"     />
+		<result property="logDate"     column="log_date"    />
+		<result property="startTime"   column="start_time"  />
+		<result property="endTime"     column="end_time"    />
+		<result property="duration"    column="duration"    />
+		<result property="logType"     column="log_type"    />
+		<result property="logStatus"   column="log_status"  />
+		<result property="billable"    column="billable"    />
+		<result property="content"     column="content"     />
+		<result property="source"      column="source"      />
+		<result property="delFlag"     column="del_flag"    />
+		<result property="projectName" column="projectName" />
+		<result property="taskName"    column="taskName"    />
+		<result property="userName"    column="userName"    />
+		<result property="createBy"    column="create_by"   />
+		<result property="createTime"  column="create_time" />
+		<result property="updateBy"    column="update_by"   />
+		<result property="updateTime"  column="update_time" />
+		<result property="remark"      column="remark"      />
+	</resultMap>
+
+	<sql id="selectWorkLogVo">
+		select w.log_id, w.user_id, w.dept_id, w.project_id, w.task_id, w.log_date, w.start_time, w.end_time, w.duration,
+			w.log_type, w.log_status, w.billable, w.content, w.source, w.del_flag, w.create_by, w.create_time,
+			w.update_by, w.update_time, w.remark,
+			p.project_name as projectName, t.task_name as taskName,
+			coalesce(u.nick_name, wu.nick_name, u.user_name) as userName
+		from biz_work_log w
+			left join biz_project p on p.project_id = w.project_id and p.del_flag = '0'
+			left join biz_task t on t.task_id = w.task_id and t.del_flag = '0'
+			left join sys_user u on u.user_id = w.user_id
+			left join biz_wx_user wu on wu.wx_user_id = w.user_id and wu.del_flag = '0'
+	</sql>
+
+	<select id="selectWorkLogList" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultMap="BizWorkLogResult">
+		<include refid="selectWorkLogVo"/>
+		<where>
+			w.del_flag = '0'
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="logType != null and logType != ''"> AND w.log_type = #{logType} </if>
+			<if test="logStatus != null and logStatus != ''"> AND w.log_status = #{logStatus} </if>
+			<if test="billable != null and billable != ''"> AND w.billable = #{billable} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		order by w.log_date desc, w.start_time desc
+	</select>
+
+	<select id="selectWorkLogById" parameterType="java.lang.Long" resultMap="BizWorkLogResult">
+		<include refid="selectWorkLogVo"/>
+		where w.del_flag = '0' and w.log_id = #{logId}
+	</select>
+
+	<select id="selectRunningTimer" parameterType="java.lang.Long" resultMap="BizWorkLogResult">
+		<include refid="selectWorkLogVo"/>
+		where w.user_id = #{userId} and w.log_status = '0' and w.del_flag = '0' limit 1
+	</select>
+
+	<select id="selectOvertimeRunning" resultMap="BizWorkLogResult">
+		<include refid="selectWorkLogVo"/>
+		where w.log_status = '0' and w.del_flag = '0' and w.start_time &lt; #{deadline}
+	</select>
+
+	<insert id="insertWorkLog" parameterType="com.ruoyi.biz.domain.BizWorkLog" useGeneratedKeys="true" keyProperty="logId">
+		insert into biz_work_log(
+			<if test="userId != null">user_id,</if>
+			<if test="deptId != null">dept_id,</if>
+			<if test="projectId != null">project_id,</if>
+			<if test="taskId != null">task_id,</if>
+			<if test="logDate != null">log_date,</if>
+			<if test="startTime != null">start_time,</if>
+			<if test="endTime != null">end_time,</if>
+			<if test="duration != null">duration,</if>
+			<if test="logType != null and logType != ''">log_type,</if>
+			<if test="logStatus != null and logStatus != ''">log_status,</if>
+			<if test="billable != null and billable != ''">billable,</if>
+			<if test="content != null">content,</if>
+			<if test="source != null and source != ''">source,</if>
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="userId != null">#{userId},</if>
+			<if test="deptId != null">#{deptId},</if>
+			<if test="projectId != null">#{projectId},</if>
+			<if test="taskId != null">#{taskId},</if>
+			<if test="logDate != null">#{logDate},</if>
+			<if test="startTime != null">#{startTime},</if>
+			<if test="endTime != null">#{endTime},</if>
+			<if test="duration != null">#{duration},</if>
+			<if test="logType != null and logType != ''">#{logType},</if>
+			<if test="logStatus != null and logStatus != ''">#{logStatus},</if>
+			<if test="billable != null and billable != ''">#{billable},</if>
+			<if test="content != null">#{content},</if>
+			<if test="source != null and source != ''">#{source},</if>
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateWorkLog" parameterType="com.ruoyi.biz.domain.BizWorkLog">
+		update biz_work_log
+		<set>
+			<if test="deptId != null">dept_id = #{deptId},</if>
+			<if test="projectId != null">project_id = #{projectId},</if>
+			<if test="taskId != null">task_id = #{taskId},</if>
+			<if test="logDate != null">log_date = #{logDate},</if>
+			<if test="startTime != null">start_time = #{startTime},</if>
+			<if test="endTime != null">end_time = #{endTime},</if>
+			<if test="duration != null">duration = #{duration},</if>
+			<if test="logType != null and logType != ''">log_type = #{logType},</if>
+			<if test="logStatus != null and logStatus != ''">log_status = #{logStatus},</if>
+			<if test="billable != null and billable != ''">billable = #{billable},</if>
+			<if test="content != null">content = #{content},</if>
+			<if test="source != null and source != ''">source = #{source},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where log_id = #{logId}
+	</update>
+
+	<update id="finishTimer" parameterType="com.ruoyi.biz.domain.BizWorkLog">
+		update biz_work_log
+		<set>
+			end_time = #{endTime}, duration = #{duration}, log_status = #{logStatus},
+			<if test="content != null">content = #{content},</if>
+			<if test="billable != null">billable = #{billable},</if>
+			<if test="updateBy != null">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where log_id = #{logId} and user_id = #{userId} and log_status = '0' and del_flag = '0'
+	</update>
+
+	<update id="updateWorkLogStatus">
+		update biz_work_log set log_status = #{logStatus}, update_by = #{updateBy}, update_time = sysdate()
+		where log_id = #{logId} and del_flag = '0'
+	</update>
+
+	<delete id="deleteWorkLogById">
+		update biz_work_log set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where log_id = #{logId}
+	</delete>
+
+	<update id="deleteWorkLogByIds">
+		update biz_work_log set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where log_id in
+		<foreach collection="logIds" item="logId" open="(" separator="," close=")">
+			#{logId}
+		</foreach>
+	</update>
+
+	<select id="selectDailyStat" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultType="com.ruoyi.biz.domain.vo.WorkLogStatVO">
+		select w.log_date as statDate,
+			sum(w.duration) as totalSeconds,
+			sum(case when w.billable = '0' then w.duration else 0 end) as billableSeconds,
+			count(1) as recordCount
+		from biz_work_log w
+		<where>
+			w.del_flag = '0' and w.log_status = '1'
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		group by w.log_date
+		order by w.log_date desc
+	</select>
+
+	<select id="selectProjectStat" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultType="com.ruoyi.biz.domain.vo.WorkLogStatVO">
+		select w.project_id as dimId,
+			p.project_name as dimName,
+			sum(w.duration) as totalSeconds,
+			sum(case when w.billable = '0' then w.duration else 0 end) as billableSeconds,
+			count(1) as recordCount
+		from biz_work_log w
+			left join biz_project p on p.project_id = w.project_id and p.del_flag = '0'
+		<where>
+			w.del_flag = '0' and w.log_status = '1'
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		group by w.project_id, p.project_name
+		order by totalSeconds desc
+	</select>
+
+	<select id="selectUserStat" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultType="com.ruoyi.biz.domain.vo.WorkLogStatVO">
+		select w.user_id as dimId,
+			u.nick_name as dimName,
+			sum(w.duration) as totalSeconds,
+			sum(case when w.billable = '0' then w.duration else 0 end) as billableSeconds,
+			count(1) as recordCount
+		from biz_work_log w
+			left join sys_user u on u.user_id = w.user_id
+		<where>
+			w.del_flag = '0' and w.log_status = '1'
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		group by w.user_id, u.nick_name
+		order by totalSeconds desc
+	</select>
+
+	<select id="selectTotalStat" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultType="com.ruoyi.biz.domain.vo.WorkLogStatVO">
+		select sum(w.duration) as totalSeconds,
+			sum(case when w.billable = '0' then w.duration else 0 end) as billableSeconds,
+			count(1) as recordCount
+		from biz_work_log w
+		<where>
+			w.del_flag = '0' and w.log_status = '1'
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+	</select>
+
+	<select id="selectTaskStatByRecord" parameterType="com.ruoyi.biz.domain.BizWorkLog" resultType="com.ruoyi.biz.domain.vo.WorkLogStatVO">
+		select w.task_id as dimId,
+			sum(w.duration) as totalSeconds
+		from biz_work_log w
+		<where>
+			w.del_flag = '0' and w.log_status = '1' and w.task_id is not null
+			<if test="userId != null"> AND w.user_id = #{userId} </if>
+			<if test="deptId != null"> AND w.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND w.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND w.task_id = #{taskId} </if>
+			<if test="params.beginLogDate != null and params.beginLogDate != ''"> AND w.log_date &gt;= #{params.beginLogDate} </if>
+			<if test="params.endLogDate != null and params.endLogDate != ''"> AND w.log_date &lt;= #{params.endLogDate} </if>
+		</where>
+		group by w.task_id
+	</select>
+
+	<select id="sumSecondsByProject" parameterType="java.lang.Long" resultType="java.lang.Long">
+		select ifnull(sum(duration), 0) from biz_work_log where project_id = #{projectId} and log_status = '1' and del_flag = '0'
+	</select>
+
+</mapper>

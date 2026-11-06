@@ -1,0 +1,168 @@
+<view class="container">
+
+  <!-- 未登录 -->
+  <view class="login-panel" wx:if="{{!login}}">
+    <view class="login-mark">账</view>
+    <view class="login-title">账时记</view>
+    <view class="login-desc">工时打卡 · 项目收支，一个小程序搞定</view>
+    <view class="btn btn-primary btn-block" bindtap="onLogin">微信一键登录</view>
+  </view>
+
+  <block wx:if="{{login}}">
+    <!-- 名片 -->
+    <view class="profile">
+      <view class="profile-main">
+        <view class="avatar-wrap {{uploading ? 'is-uploading' : ''}}">
+          <!-- 裁切成正圆只发生在内层，徽标才能溢到圆圈外而不被切掉 -->
+          <view class="avatar-inner">
+            <image wx:if="{{wxUser.avatarUrl}}" class="avatar" src="{{wxUser.avatarUrl}}" mode="aspectFill" />
+            <view wx:else class="avatar-fallback">{{nickInitial}}</view>
+          </view>
+
+          <!-- 透明 button 铺满头像：整块可点，且不参与盒模型计算 -->
+          <button class="avatar-hit" open-type="chooseAvatar" hover-class="none" bindchooseavatar="onChooseAvatar"></button>
+
+          <view class="avatar-badge" wx:if="{{!uploading}}">改</view>
+          <view class="avatar-loading" wx:else>…</view>
+        </view>
+
+        <view class="profile-info">
+          <block wx:if="{{editing}}">
+            <!-- 不加 focus：type=nickname 的输入框一旦自动聚焦，微信会直接拉起
+                 「头像昵称填写」浮层，点保存/取消时会反复弹，非常困扰 -->
+            <input
+              class="nick-input"
+              type="nickname"
+              value="{{nickNameInput}}"
+              placeholder="请输入昵称"
+              maxlength="20"
+              bindinput="onNicknameInput"
+            />
+            <view class="edit-actions">
+              <view class="edit-btn is-save" hover-class="is-hover" catchtap="saveNickName">保存</view>
+              <view class="edit-btn is-cancel" hover-class="is-hover" catchtap="cancelEdit">取消</view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="nick-row">
+              <text class="nick-name">{{wxUser.nickName || '微信用户'}}</text>
+              <text class="edit-icon" bindtap="onToggleEdit">编辑</text>
+            </view>
+            <view class="profile-sub" wx:if="{{wxUser.registerTime}}">{{wxUser.registerTime}} 加入</view>
+          </block>
+        </view>
+      </view>
+
+      <view class="profile-stats">
+        <view class="ps-cell">
+          <text class="ps-num figure">{{stat.totalHours || 0}}</text>
+          <text class="ps-label">累计工时</text>
+        </view>
+        <view class="ps-cell">
+          <text class="ps-num figure">{{stat.totalLogCount || 0}}</text>
+          <text class="ps-label">打卡次数</text>
+        </view>
+        <view class="ps-cell">
+          <text class="ps-num figure">{{stat.runningProjectCount || 0}}</text>
+          <text class="ps-label">进行中项目</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 本月 -->
+    <view class="card">
+      <view class="card-title">
+        <text>本月</text>
+        <text class="text-mute">{{stat.monthHours || 0}} 小时</text>
+      </view>
+      <view class="month-row">
+        <view class="month-cell">
+          <view class="money-cap"><view class="dot"></view><text>收入</text></view>
+          <view class="month-num money-in figure">{{stat.monthIncome || 0}}</view>
+        </view>
+        <view class="money-divider"></view>
+        <view class="month-cell">
+          <view class="money-cap is-out"><view class="dot"></view><text>支出</text></view>
+          <view class="month-num money-out figure">{{stat.monthExpense || 0}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 账号 -->
+    <view class="card">
+      <view class="card-title">账号</view>
+      <view class="list-item row-between">
+        <text class="text-sub">身份类型</text>
+        <text class="tag tag-blue">微信独立账号</text>
+      </view>
+      <view class="list-item row-between">
+        <text class="text-sub">账号状态</text>
+        <text class="tag {{statusOk ? 'tag-green' : 'tag-red'}}">{{statusText}}</text>
+      </view>
+      <view class="list-item row-between" wx:if="{{wxUser.lastLoginTime}}">
+        <text class="text-sub">最近登录</text>
+        <text class="text-mute figure">{{wxUser.lastLoginTime}}</text>
+      </view>
+    </view>
+
+    <!-- 功能入口 -->
+    <view class="card">
+      <view class="menu-item" bindtap="openExport">
+        <view class="glyph is-pine">导</view>
+        <text class="menu-text">数据导出</text>
+        <view class="arrow"></view>
+      </view>
+      <view class="menu-item" bindtap="onCancelAccount">
+        <view class="glyph is-clay">销</view>
+        <text class="menu-text">账号注销</text>
+        <view class="arrow"></view>
+      </view>
+      <view class="menu-item" bindtap="onLogout">
+        <view class="glyph">退</view>
+        <text class="menu-text">退出登录</text>
+        <view class="arrow"></view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 数据导出（REQ-002） -->
+  <view class="mask" wx:if="{{exportShow}}" bindtap="closeExport"></view>
+  <view class="sheet" wx:if="{{exportShow}}">
+    <view class="sheet-handle"></view>
+    <view class="sheet-head">
+      <text class="sheet-title">数据导出</text>
+      <text class="sheet-close" bindtap="closeExport">关闭</text>
+    </view>
+    <view class="form-row">
+      <text class="label">导出范围</text>
+      <picker mode="selector" range="{{scopeNames}}" value="{{scopeIndex}}" bindchange="onScopeChange">
+        <view class="value">{{scopeNames[scopeIndex]}}</view>
+      </picker>
+    </view>
+    <block wx:if="{{scopeIndex === 2}}">
+      <view class="form-row">
+        <text class="label">开始日期</text>
+        <picker mode="date" value="{{exportBegin}}" bindchange="onBeginChange">
+          <view class="value {{exportBegin ? '' : 'placeholder'}}">{{exportBegin || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="form-row">
+        <text class="label">结束日期</text>
+        <picker mode="date" value="{{exportEnd}}" bindchange="onEndChange">
+          <view class="value {{exportEnd ? '' : 'placeholder'}}">{{exportEnd || '请选择'}}</view>
+        </picker>
+      </view>
+    </block>
+    <view class="btn btn-primary btn-block export-main-btn {{exporting ? 'btn-disabled' : ''}}" bindtap="doExport">
+      {{exporting ? '生成中…' : '导出并生成文件'}}
+    </view>
+    <block wx:if="{{exportResult}}">
+      <view class="export-result">
+        <view class="result-line">共 {{exportResult.logCount}} 条打卡 / {{exportResult.recordCount}} 条流水</view>
+        <view class="btn btn-gray export-btn" bindtap="openExcel">打开 Excel 文件</view>
+        <view class="btn btn-gray export-btn" bindtap="copyJson">复制 JSON 备份链接</view>
+        <view class="result-line text-mute">文件保留 3 天；JSON 备份请用电脑浏览器打开链接下载</view>
+      </view>
+    </block>
+  </view>
+</view>

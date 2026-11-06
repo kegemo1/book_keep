@@ -1,0 +1,112 @@
+/* 计时器 Hero：整页视觉重心 */
+.timer-hero {
+  position: relative;
+  border-radius: 34rpx;
+  padding: 30rpx 30rpx 26rpx;
+  margin-bottom: 22rpx;
+  overflow: hidden;
+  background: radial-gradient(130% 120% at 86% -10%, #3f5d4d 0%, #2c4036 45%, #1e2e27 100%);
+  box-shadow: 0 26rpx 54rpx -30rpx rgba(30, 46, 39, 0.95);
+}
+
+/* 右上角一层极淡的光晕，避免深色块死板 */
+.timer-hero::after {
+  content: "";
+  position: absolute;
+  right: -80rpx;
+  top: -120rpx;
+  width: 340rpx;
+  height: 340rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(150, 196, 170, 0.22) 0%, rgba(150, 196, 170, 0) 68%);
+  pointer-events: none;
+}
+
+/* 工时：左大右小 */
+.stat-line {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.stat-main-num {
+  font-size: 66rpx;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -1.6rpx;
+}
+
+.stat-main-num .stat-unit {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 6rpx;
+}
+
+.stat-main .label-mono {
+  margin-top: 10rpx;
+}
+
+.stat-aside {
+  display: flex;
+  align-items: flex-end;
+}
+
+.aside-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* 只在两个小格之间画分隔线，避免第一格左侧多出一条 */
+.aside-cell + .aside-cell {
+  padding-left: 30rpx;
+  margin-left: 30rpx;
+  border-left: 2rpx solid var(--line);
+}
+
+.aside-num {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
+
+.aside-label {
+  font-size: 21rpx;
+  color: var(--ink-3);
+  margin-top: 4rpx;
+  letter-spacing: 1rpx;
+}
+
+/* 净额（收支双栏样式已提升到 app.wxss 共用） */
+.net-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.net-num {
+  margin-top: 6rpx;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.8rpx;
+}
+
+.net-num.is-neg {
+  color: var(--out);
+}
+
+/* 图表右上角总计 */
+.chart-total {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.4rpx;
+}
+
+/* 表单占位符 */
+.ph {
+  color: #bcb9b1;
+}

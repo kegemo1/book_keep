@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/worklog/worklog",
+    "pages/finance/finance",
+    "pages/project/project",
+    "pages/task/task",
+    "pages/mine/mine"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#f6f4ef",
+    "navigationBarTitleText": "账时记",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6f4ef",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#a3a69f",
+    "selectedColor": "#24352e",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-on.png"
+      },
+      {
+        "pagePath": "pages/worklog/worklog",
+        "text": "工时",
+        "iconPath": "assets/tabbar/time.png",
+        "selectedIconPath": "assets/tabbar/time-on.png"
+      },
+      {
+        "pagePath": "pages/finance/finance",
+        "text": "记账",
+        "iconPath": "assets/tabbar/wallet.png",
+        "selectedIconPath": "assets/tabbar/wallet-on.png"
+      },
+      {
+        "pagePath": "pages/project/project",
+        "text": "项目",
+        "iconPath": "assets/tabbar/folder.png",
+        "selectedIconPath": "assets/tabbar/folder-on.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "assets/tabbar/user.png",
+        "selectedIconPath": "assets/tabbar/user-on.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "requiredPrivateInfos": []
+}

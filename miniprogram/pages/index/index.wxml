@@ -1,0 +1,129 @@
+<view class="container">
+
+  <!-- 页头：问候 + 日期，替代原来的大色块横幅 -->
+  <view class="page-head">
+    <view class="hello">{{greeting}}</view>
+    <view class="hello-sub">{{dateLine}} · {{running ? '计时进行中' : '今天也好好记录'}}</view>
+  </view>
+
+  <!-- 计时器：全屏最重的一块，深松绿底，白色等宽数字 -->
+  <view class="timer-hero">
+    <timer-card running="{{running}}" bind:stop="onStop" />
+  </view>
+
+  <!-- 开始计时 -->
+  <view class="card" wx:if="{{!running}}">
+    <view class="card-title">开始一次计时</view>
+
+    <view class="form-row">
+      <text class="label">项目</text>
+      <picker mode="selector" range="{{projectNames}}" value="{{projectIndex}}" bindchange="onProjectChange">
+        <view class="value {{projectIndex < 0 ? 'placeholder' : ''}}">
+          {{projectIndex < 0 ? '请选择项目' : projectNames[projectIndex]}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-row" wx:if="{{taskNames.length > 0}}">
+      <text class="label">任务</text>
+      <picker mode="selector" range="{{taskNames}}" value="{{taskIndex}}" bindchange="onTaskChange">
+        <view class="value {{taskIndex < 0 ? 'placeholder' : ''}}">
+          {{taskIndex < 0 ? '请选择任务（可选）' : taskNames[taskIndex]}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-row">
+      <text class="label">计费工时</text>
+      <switch checked="{{billable === '0'}}" color="#24352e" bindchange="onBillableChange" />
+    </view>
+
+    <view class="content-box">
+      <textarea
+        class="content-input"
+        placeholder="这一段时间要做什么？（可选）"
+        placeholder-class="ph"
+        maxlength="200"
+        value="{{content}}"
+        bindinput="onContentInput"
+        auto-height
+      />
+    </view>
+
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="onStart">开始计时</view>
+  </view>
+
+  <!-- 工时 -->
+  <view class="card">
+    <view class="card-title">
+      <text>工时</text>
+      <text class="more" bindtap="goWorklog">明细 ›</text>
+    </view>
+
+    <view class="stat-line">
+      <view class="stat-main">
+        <view class="stat-main-num figure">{{dash.todayHours || 0}}<text class="stat-unit">h</text></view>
+        <view class="label-mono">今日已完成</view>
+      </view>
+      <view class="stat-aside">
+        <view class="aside-cell">
+          <text class="aside-num figure">{{dash.weekHours || 0}}</text>
+          <text class="aside-label">本周</text>
+        </view>
+        <view class="aside-cell">
+          <text class="aside-num figure">{{dash.monthHours || 0}}</text>
+          <text class="aside-label">本月</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 本月收支 -->
+  <view class="card">
+    <view class="card-title">
+      <text>本月收支</text>
+      <text class="more" bindtap="goFinance">去记账 ›</text>
+    </view>
+
+    <view class="money-pair">
+      <view class="money-cell is-in">
+        <view class="money-cap"><view class="dot"></view><text>收入</text></view>
+        <view class="money-num figure">{{dash.monthIncome || 0}}</view>
+      </view>
+      <view class="money-divider"></view>
+      <view class="money-cell is-out">
+        <view class="money-cap"><view class="dot"></view><text>支出</text></view>
+        <view class="money-num figure">{{dash.monthExpense || 0}}</view>
+      </view>
+    </view>
+
+    <view class="hairline"></view>
+
+    <view class="row-between">
+      <view class="net-box">
+        <text class="label-mono">净额</text>
+        <text class="net-num figure {{(dash.monthProfit || 0) < 0 ? 'is-neg' : ''}}">¥{{dash.monthProfit || 0}}</text>
+      </view>
+      <view class="chip-gold">
+        <text class="chip-gold-k">待收</text>
+        <text class="figure">¥{{dash.receivable || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 趋势 -->
+  <view class="card">
+    <view class="card-title">
+      <text>近 7 天工时</text>
+      <text class="chart-total figure">{{chartTotal}} h</text>
+    </view>
+    <view wx:if="{{chartHasData}}">
+      <line-chart labels="{{chartLabels}}" values="{{chartValues}}" height="{{180}}"></line-chart>
+    </view>
+    <view wx:else class="empty">
+      <view class="empty-icon">◷</view>
+      还没有工时记录，打个卡试试
+    </view>
+  </view>
+
+</view>

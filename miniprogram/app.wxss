@@ -1,0 +1,668 @@
+/* ==========================================================================
+   账时记 · 设计系统
+   --------------------------------------------------------------------------
+   视觉概念：纸感账本
+   - 底色用暖纸白而不是冷灰，避免"后台系统"的僵硬感
+   - 主色取深松绿（#24352E），只出现在主按钮、选中态与关键数字上
+   - 收支语义色降饱和：苔绿 = 收入，陶土 = 支出，赭金 = 待收/提醒
+   - 层级靠留白、发丝线与极轻阴影建立，不靠重色块
+   ========================================================================== */
+
+page {
+  /* 底色与面 */
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --soft: #faf8f4;
+  --soft-2: #f2efe8;
+
+  /* 文字 */
+  --ink: #1c211f;
+  --ink-2: #6b6e68;
+  --ink-3: #a3a69f;
+
+  /* 分隔与阴影 */
+  --line: #ece7de;
+  --shadow: 0 1rpx 2rpx rgba(28, 33, 31, 0.03), 0 12rpx 32rpx -20rpx rgba(28, 33, 31, 0.22);
+
+  /* 品牌 */
+  --pine: #24352e;
+  --pine-2: #3b5648;
+  --sage: #edf2ee;
+
+  /* 语义 */
+  --in: #41795a;
+  --in-soft: #eaf2ec;
+  --out: #ae5f49;
+  --out-soft: #f9ede8;
+  --gold: #a57c2e;
+  --gold-soft: #f8f0df;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 28rpx;
+  line-height: 1.55;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+view, text, input, textarea, button, picker {
+  box-sizing: border-box;
+}
+
+/* input 自带约 1.4rem（≈44rpx）的默认高度：字号一旦接近或超过它，
+   文字就会被输入框的边线拦腰截断（"我的"页昵称输入框踩过这个坑）。
+   这里给一个随字号走的兜底高度，各页面不用再单独算 */
+input {
+  min-height: 1.9em;
+}
+
+/* 数字统一用等宽数字，金额与时长对齐才不跳动 */
+.figure {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.4rpx;
+}
+
+/* ---------------- 页面容器 ---------------- */
+.container {
+  padding: 8rpx 24rpx calc(56rpx + env(safe-area-inset-bottom));
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ---------------- 页头 ---------------- */
+.page-head {
+  padding: 24rpx 8rpx 28rpx;
+}
+
+.page-head .hello {
+  font-size: 44rpx;
+  font-weight: 600;
+  letter-spacing: -0.6rpx;
+  color: var(--ink);
+}
+
+.page-head .hello-sub {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.6rpx;
+}
+
+/* ---------------- 卡片 ---------------- */
+.card {
+  background: var(--surface);
+  border-radius: 28rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+
+.card-flat {
+  background: var(--surface);
+  border-radius: 28rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 卡片头部：标题左，动作右 */
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 24rpx;
+  letter-spacing: 0.2rpx;
+}
+
+.card-title .more {
+  display: flex;
+  align-items: center;
+  font-size: 23rpx;
+  font-weight: 400;
+  color: var(--ink-3);
+  letter-spacing: 0.4rpx;
+}
+
+/* 卡片内的细分隔线 */
+.hairline {
+  height: 2rpx;
+  background: var(--line);
+  margin: 24rpx 0;
+}
+
+.hairline-dash {
+  height: 0;
+  border-top: 2rpx dashed var(--line);
+  margin: 24rpx 0;
+}
+
+/* ---------------- 布局 ---------------- */
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-3 {
+  display: flex;
+}
+
+.grid-3 > view {
+  flex: 1;
+  text-align: center;
+}
+
+/* ---------------- 文字 ---------------- */
+.text-sub {
+  color: var(--ink-2);
+  font-size: 26rpx;
+}
+
+.text-mute {
+  color: var(--ink-3);
+  font-size: 24rpx;
+}
+
+.text-danger {
+  color: var(--out);
+}
+
+.text-success {
+  color: var(--in);
+}
+
+.text-warn {
+  color: var(--gold);
+}
+
+.text-strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* 小标签文字：字距略松，读起来更像"标注"而不是"内容" */
+.label-mono {
+  font-size: 22rpx;
+  color: var(--ink-3);
+  letter-spacing: 1.4rpx;
+}
+
+/* ---------------- 金额 ---------------- */
+.money-in {
+  color: var(--in);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-out {
+  color: var(--out);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- 按钮 ---------------- */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  letter-spacing: 0.6rpx;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.btn:active {
+  transform: scale(0.985);
+  opacity: 0.92;
+}
+
+.btn-primary {
+  background: var(--pine);
+  color: #f7f5f0;
+  box-shadow: 0 14rpx 30rpx -18rpx rgba(36, 53, 46, 0.85);
+}
+
+.btn-danger {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.btn-plain {
+  background: transparent;
+  color: var(--pine);
+  border: 2rpx solid rgba(36, 53, 46, 0.22);
+}
+
+.btn-gray {
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.btn-ghost {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-disabled {
+  background: #d9d6cf;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.btn-sm {
+  display: inline-flex;
+  height: 64rpx;
+  padding: 0 30rpx;
+  font-size: 25rpx;
+  border-radius: 999rpx;
+}
+
+/* ---------------- 胶囊标签 ---------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+  margin-right: 10rpx;
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.tag-blue {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.tag-green {
+  background: var(--in-soft);
+  color: var(--in);
+}
+
+.tag-red {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.tag-orange {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.tag-gray {
+  background: #f1eee8;
+  color: var(--ink-3);
+}
+
+/* 带小圆点的状态标签，比纯色块更轻 */
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  margin-right: 10rpx;
+  background: currentColor;
+}
+
+/* ---------------- 列表 ---------------- */
+.list-item {
+  padding: 26rpx 0;
+  border-bottom: 2rpx solid var(--line);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+
+.list-item:first-child {
+  padding-top: 4rpx;
+}
+
+/* 功能入口行：左字块图标 + 标题 + 右箭头 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 26rpx 0;
+  border-bottom: 2rpx solid var(--line);
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item .glyph {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-right: 22rpx;
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.menu-item .glyph.is-pine {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.menu-item .glyph.is-clay {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.menu-item .menu-text {
+  flex: 1;
+  font-size: 29rpx;
+  color: var(--ink);
+}
+
+.menu-item .arrow {
+  width: 12rpx;
+  height: 12rpx;
+  border-top: 2rpx solid var(--ink-3);
+  border-right: 2rpx solid var(--ink-3);
+  transform: rotate(45deg);
+  margin-left: 12rpx;
+}
+
+/* ---------------- 表单 ---------------- */
+.form-row {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid var(--line);
+}
+
+.form-row:last-of-type {
+  border-bottom: none;
+}
+
+.form-row .label {
+  width: 176rpx;
+  flex-shrink: 0;
+  color: var(--ink-2);
+  font-size: 27rpx;
+}
+
+.form-row .value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  color: var(--ink);
+  font-size: 29rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.form-row picker,
+.form-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-row switch {
+  margin-left: auto;
+}
+
+.form-row .placeholder {
+  color: #bcb9b1;
+}
+
+.input-right {
+  text-align: right;
+}
+
+/* 输入区：软底、无边框，靠底色区分"可输入" */
+.content-box {
+  background: var(--soft);
+  border-radius: 22rpx;
+  padding: 24rpx;
+  margin: 24rpx 0;
+}
+
+.content-input {
+  width: 100%;
+  font-size: 28rpx;
+  min-height: 104rpx;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* ---------------- 空态 / 加载 ---------------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 90rpx 40rpx;
+  color: var(--ink-3);
+  font-size: 25rpx;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--soft);
+  color: #cdc9c0;
+  font-size: 44rpx;
+  margin-bottom: 22rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 44rpx 0;
+  color: var(--ink-3);
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
+}
+
+/* ---------------- 悬浮按钮 ---------------- */
+.fab {
+  position: fixed;
+  right: 36rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom));
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 56rpx;
+  font-weight: 300;
+  line-height: 1;
+  padding-bottom: 6rpx;
+  box-shadow: 0 18rpx 36rpx -16rpx rgba(36, 53, 46, 0.75);
+  z-index: 50;
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+/* ---------------- 底部面板 ---------------- */
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(28, 33, 31, 0.42);
+  z-index: 100;
+  animation: fade-in 0.2s ease;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-radius: 36rpx 36rpx 0 0;
+  padding: 12rpx 32rpx calc(40rpx + env(safe-area-inset-bottom));
+  z-index: 101;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: sheet-up 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 顶部小横条：让面板看起来是"拉起来的一张纸" */
+.sheet-handle {
+  width: 68rpx;
+  height: 8rpx;
+  border-radius: 8rpx;
+  background: #e2ded5;
+  margin: 8rpx auto 4rpx;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.sheet-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  letter-spacing: -0.2rpx;
+}
+
+.sheet-close {
+  font-size: 24rpx;
+  color: var(--ink-3);
+  padding: 10rpx 4rpx 10rpx 20rpx;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(60rpx); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------------- 分段筛选器 ---------------- */
+.seg {
+  display: flex;
+  padding: 6rpx;
+  background: #efece5;
+  border-radius: 999rpx;
+  margin-bottom: 22rpx;
+}
+
+.seg-item {
+  flex: 1;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--ink-2);
+  border-radius: 999rpx;
+  transition: all 0.2s ease;
+}
+
+.seg-item.active {
+  background: var(--surface);
+  color: var(--pine);
+  font-weight: 600;
+  box-shadow: 0 6rpx 16rpx -10rpx rgba(28, 33, 31, 0.45);
+}
+
+/* ---------------- 收支双栏（首页 / 记账页共用） ---------------- */
+.money-pair {
+  display: flex;
+  align-items: stretch;
+}
+
+.money-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.money-cap {
+  display: flex;
+  align-items: center;
+  font-size: 23rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.8rpx;
+}
+
+.money-cell.is-in .money-cap {
+  color: var(--in);
+}
+
+.money-cell.is-out .money-cap {
+  color: var(--out);
+}
+
+.money-num {
+  margin-top: 10rpx;
+  font-size: 46rpx;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -1rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-cell.is-in .money-num {
+  color: var(--in);
+}
+
+.money-cell.is-out .money-num {
+  color: var(--out);
+}
+
+.money-divider {
+  width: 2rpx;
+  background: var(--line);
+  margin: 6rpx 30rpx;
+}
+
+/* 赭金胶囊：待收/提醒类信息 */
+.chip-gold {
+  display: flex;
+  align-items: center;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 23rpx;
+  font-weight: 500;
+}
+
+.chip-gold-k {
+  margin-right: 8rpx;
+  opacity: 0.72;
+}

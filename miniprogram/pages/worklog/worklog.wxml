@@ -1,0 +1,127 @@
+<view class="container">
+
+  <!-- 今日总览 -->
+  <view class="today-card">
+    <view class="today-left">
+      <view class="label-mono">今日已完成</view>
+      <view class="today-num figure">{{todayHours}}<text class="today-unit">h</text></view>
+      <view class="today-meta">{{todayCount}} 次打卡</view>
+    </view>
+    <view class="today-action" bindtap="openForm">
+      <text class="today-plus">＋</text>
+      <text>补录</text>
+    </view>
+  </view>
+
+  <!-- 计时器 -->
+  <view class="timer-hero">
+    <timer-card running="{{running}}" bind:stop="onStop" />
+  </view>
+
+  <!-- 打卡记录 -->
+  <view class="card">
+    <view class="card-title">
+      <text>打卡记录</text>
+      <text class="count-text">{{total}} 条</text>
+    </view>
+
+    <view wx:if="{{records.length === 0 && !loading}}" class="empty">
+      <view class="empty-icon">◷</view>
+      还没有打卡记录
+    </view>
+
+    <view class="rec {{item.isVoid ? 'is-void' : ''}}" wx:for="{{records}}" wx:key="logId">
+      <!-- 左侧日期栏，像账本的日期列 -->
+      <view class="rec-date">
+        <text class="rec-day figure">{{item.dateLabel}}</text>
+      </view>
+
+      <view class="rec-body">
+        <view class="rec-line">
+          <text class="rec-proj">{{item.projectName || '未归类'}}</text>
+          <text class="rec-hours figure">{{item.durationHour}}<text class="rec-hours-unit">h</text></text>
+        </view>
+
+        <view class="rec-sub" wx:if="{{item.taskName}}">{{item.taskName}}</view>
+
+        <view class="rec-time">
+          <text wx:if="{{item.startTime}}">{{item.startTime}} – {{item.endTime}}</text>
+          <text wx:else>手动补录</text>
+        </view>
+
+        <view class="rec-content" wx:if="{{item.content}}">{{item.content}}</view>
+
+        <view class="rec-foot">
+          <view class="rec-meta">
+            <!-- 来源：描边微标签，扫视用，不进层级 -->
+            <text class="rec-src">{{item.logTypeText}}</text>
+            <!-- 状态：圆点 + 文字，颜色即语义 -->
+            <view class="rec-state {{item.stateClass}}">
+              <view class="rec-state-dot"></view>
+              <text>{{item.stateText}}</text>
+            </view>
+          </view>
+          <text class="rec-op" wx:if="{{item.canCancel}}" data-id="{{item.logId}}" bindtap="onCancel">作废</text>
+          <text class="rec-op is-in" wx:if="{{item.isRunning}}" data-id="{{item.logId}}" bindtap="onStopRecord">结束并记录</text>
+        </view>
+
+        <view class="rec-note" wx:if="{{item.isRunning}}">这条计时一直没结束，结束后才计入统计</view>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading">加载中…</view>
+    <view wx:elif="{{noMore && records.length > 0}}" class="loading">— 没有更多了 —</view>
+  </view>
+
+</view>
+
+<!-- 手动补录面板 -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="sheet" wx:if="{{showForm}}">
+  <view class="sheet-handle"></view>
+  <view class="sheet-head">
+    <text class="sheet-title">补录工时</text>
+    <text class="sheet-close" bindtap="closeForm">关闭</text>
+  </view>
+
+  <view class="form-row">
+    <text class="label">项目</text>
+    <picker mode="selector" range="{{projectNames}}" value="{{projectIndex}}" bindchange="onProjectChange">
+      <view class="value {{projectIndex < 0 ? 'placeholder' : ''}}">
+        {{projectIndex < 0 ? '请选择项目' : projectNames[projectIndex]}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-row" wx:if="{{taskNames.length > 0}}">
+    <text class="label">任务</text>
+    <picker mode="selector" range="{{taskNames}}" value="{{taskIndex}}" bindchange="onTaskChange">
+      <view class="value {{taskIndex < 0 ? 'placeholder' : ''}}">
+        {{taskIndex < 0 ? '请选择任务（可选）' : taskNames[taskIndex]}}
+      </view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">归属日期</text>
+    <picker mode="date" value="{{logDate}}" start="{{minDate}}" end="{{logDate}}" bindchange="onDateChange">
+      <view class="value">{{logDate}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">工时(小时)</text>
+    <input class="value input-right" type="digit" value="{{hours}}" placeholder="如 2 或 2.5" placeholder-class="ph" bindinput="onHoursInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">计费工时</text>
+    <switch checked="{{billable === '0'}}" color="#24352e" bindchange="onBillableChange" />
+  </view>
+
+  <view class="content-box">
+    <textarea class="content-input" placeholder="做了哪些事？（可选）" placeholder-class="ph" maxlength="200" value="{{content}}" bindinput="onContentInput" auto-height />
+  </view>
+
+  <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="submitManual">提交补录</view>
+</view>

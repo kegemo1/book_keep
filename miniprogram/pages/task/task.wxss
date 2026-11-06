@@ -1,0 +1,201 @@
+.head-note {
+  background: var(--surface);
+  border-radius: 28rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+  font-size: 24rpx;
+  color: var(--ink-2);
+  line-height: 1.75;
+  text-align: center;
+}
+
+.head-note .empty-icon {
+  margin: 0 auto 20rpx;
+}
+
+/* 任务卡：左侧色条 + 内容区 */
+.task {
+  position: relative;
+  display: flex;
+  background: var(--surface);
+  border-radius: 26rpx;
+  margin-bottom: 18rpx;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.task-strip {
+  width: 8rpx;
+  flex-shrink: 0;
+  background: var(--line);
+}
+
+.task-strip.is-high {
+  background: linear-gradient(180deg, #c98572, #ae5f49);
+}
+
+.task-strip.is-mid {
+  background: linear-gradient(180deg, #cfae76, #a57c2e);
+}
+
+.task-strip.is-low {
+  background: #dcd7cd;
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+  padding: 28rpx 28rpx 12rpx 26rpx;
+}
+
+.task-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.task-name {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.task-name.is-done {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+
+.task-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  letter-spacing: 0.6rpx;
+  background: var(--soft-2);
+  color: var(--ink-3);
+}
+
+.task-status.is-todo {
+  background: var(--soft-2);
+  color: var(--ink-3);
+}
+
+.task-status.is-doing {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.task-status.is-done {
+  background: var(--in-soft);
+  color: var(--in);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 14rpx;
+}
+
+.prio {
+  height: 36rpx;
+  line-height: 36rpx;
+  padding: 0 12rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  color: var(--ink-3);
+  background: var(--soft-2);
+  margin-right: 18rpx;
+}
+
+.prio.is-high {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.prio.is-mid {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.meta-k {
+  font-size: 21rpx;
+  color: var(--ink-3);
+  margin-right: 18rpx;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+}
+
+.track {
+  flex: 1;
+  height: 12rpx;
+  border-radius: 8rpx;
+  background: var(--soft-2);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, #8aa89a, #4f6b5f);
+  transition: width 0.3s ease;
+}
+
+.fill.is-done {
+  background: linear-gradient(90deg, #86b39b, #41795a);
+}
+
+.pct {
+  width: 76rpx;
+  text-align: right;
+  font-size: 21rpx;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.task-remark {
+  margin-top: 14rpx;
+  padding-left: 14rpx;
+  border-left: 3rpx solid var(--line);
+  font-size: 22rpx;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.task-ops {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16rpx;
+  padding-top: 12rpx;
+  border-top: 2rpx solid var(--line);
+}
+
+.op {
+  font-size: 23rpx;
+  color: var(--ink-2);
+  padding: 8rpx 0 8rpx 30rpx;
+}
+
+.op.is-danger {
+  color: var(--out);
+}
+
+.flex-1 {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.ph {
+  color: #bcb9b1;
+}

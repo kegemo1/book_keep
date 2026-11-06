@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.biz.mapper.BizProjectMapper">
+
+	<resultMap type="com.ruoyi.biz.domain.BizProject" id="BizProjectResult">
+		<id     property="projectId"    column="project_id"    />
+		<result property="projectCode"  column="project_code"  />
+		<result property="projectName"  column="project_name"  />
+		<result property="deptId"       column="dept_id"       />
+		<result property="ownerId"      column="owner_id"      />
+		<result property="projectType"  column="project_type"  />
+		<result property="customerName" column="customer_name" />
+		<result property="status"       column="status"        />
+		<result property="startDate"    column="start_date"    />
+		<result property="planEndDate"  column="plan_end_date" />
+		<result property="endDate"      column="end_date"      />
+		<result property="budgetAmount" column="budget_amount" />
+		<result property="hourRate"     column="hour_rate"     />
+		<result property="orderNum"     column="order_num"     />
+		<result property="delFlag"      column="del_flag"      />
+		<result property="deptName"     column="deptName"      />
+		<result property="ownerName"    column="ownerName"     />
+		<result property="createBy"     column="create_by"     />
+		<result property="createTime"   column="create_time"   />
+		<result property="updateBy"     column="update_by"     />
+		<result property="updateTime"   column="update_time"   />
+		<result property="remark"       column="remark"        />
+	</resultMap>
+
+	<sql id="selectProjectVo">
+		select p.project_id, p.project_code, p.project_name, p.dept_id, p.owner_id, p.project_type, p.customer_name,
+			p.status, p.start_date, p.plan_end_date, p.end_date, p.budget_amount, p.hour_rate, p.order_num, p.del_flag,
+			p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+			d.dept_name as deptName, u.nick_name as ownerName
+		from biz_project p
+			left join sys_dept d on d.dept_id = p.dept_id
+			left join sys_user u on u.user_id = p.owner_id
+	</sql>
+
+	<select id="selectProjectList" parameterType="com.ruoyi.biz.domain.BizProject" resultMap="BizProjectResult">
+		<include refid="selectProjectVo"/>
+		<where>
+			p.del_flag = '0'
+			<if test="projectCode != null and projectCode != ''"> AND p.project_code like concat('%', #{projectCode}, '%') </if>
+			<if test="projectName != null and projectName != ''"> AND p.project_name like concat('%', #{projectName}, '%') </if>
+			<if test="projectType != null and projectType != ''"> AND p.project_type = #{projectType} </if>
+			<if test="customerName != null and customerName != ''"> AND p.customer_name like concat('%', #{customerName}, '%') </if>
+			<if test="status != null and status != ''"> AND p.status = #{status} </if>
+			<if test="deptId != null"> AND p.dept_id = #{deptId} </if>
+			<if test="ownerId != null"> AND p.owner_id = #{ownerId} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		order by p.order_num, p.project_id
+	</select>
+
+	<select id="selectProjectOptions" parameterType="com.ruoyi.biz.domain.BizProject" resultMap="BizProjectResult">
+		<include refid="selectProjectVo"/>
+		where p.del_flag = '0' and p.status = '0'
+		<!-- 小程序端强制按负责人过滤（controller 固定 setOwnerId），管理端不传则不过滤 -->
+		<if test="ownerId != null"> AND p.owner_id = #{ownerId} </if>
+		<if test="projectName != null and projectName != ''"> AND p.project_name like concat('%', #{projectName}, '%') </if>
+		order by p.order_num, p.project_id
+	</select>
+
+	<select id="selectProjectById" parameterType="java.lang.Long" resultMap="BizProjectResult">
+		<include refid="selectProjectVo"/>
+		where p.del_flag = '0' and p.project_id = #{projectId}
+	</select>
+
+	<select id="checkProjectCodeUnique" parameterType="java.lang.String" resultMap="BizProjectResult">
+		<include refid="selectProjectVo"/>
+		where p.project_code = #{projectCode} limit 1
+	</select>
+
+	<insert id="insertProject" parameterType="com.ruoyi.biz.domain.BizProject" useGeneratedKeys="true" keyProperty="projectId">
+		insert into biz_project(
+			<if test="projectCode != null and projectCode != ''">project_code,</if>
+			<if test="projectName != null and projectName != ''">project_name,</if>
+			<if test="deptId != null">dept_id,</if>
+			<if test="ownerId != null">owner_id,</if>
+			<if test="projectType != null and projectType != ''">project_type,</if>
+			<if test="customerName != null">customer_name,</if>
+			<if test="status != null and status != ''">status,</if>
+			<if test="startDate != null">start_date,</if>
+			<if test="planEndDate != null">plan_end_date,</if>
+			<if test="endDate != null">end_date,</if>
+			<if test="budgetAmount != null">budget_amount,</if>
+			<if test="hourRate != null">hour_rate,</if>
+			<if test="orderNum != null">order_num,</if>
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="projectCode != null and projectCode != ''">#{projectCode},</if>
+			<if test="projectName != null and projectName != ''">#{projectName},</if>
+			<if test="deptId != null">#{deptId},</if>
+			<if test="ownerId != null">#{ownerId},</if>
+			<if test="projectType != null and projectType != ''">#{projectType},</if>
+			<if test="customerName != null">#{customerName},</if>
+			<if test="status != null and status != ''">#{status},</if>
+			<if test="startDate != null">#{startDate},</if>
+			<if test="planEndDate != null">#{planEndDate},</if>
+			<if test="endDate != null">#{endDate},</if>
+			<if test="budgetAmount != null">#{budgetAmount},</if>
+			<if test="hourRate != null">#{hourRate},</if>
+			<if test="orderNum != null">#{orderNum},</if>
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateProject" parameterType="com.ruoyi.biz.domain.BizProject">
+		update biz_project
+		<set>
+			<if test="projectCode != null and projectCode != ''">project_code = #{projectCode},</if>
+			<if test="projectName != null and projectName != ''">project_name = #{projectName},</if>
+			<if test="deptId != null">dept_id = #{deptId},</if>
+			<if test="ownerId != null">owner_id = #{ownerId},</if>
+			<if test="projectType != null and projectType != ''">project_type = #{projectType},</if>
+			<if test="customerName != null">customer_name = #{customerName},</if>
+			<if test="status != null and status != ''">status = #{status},</if>
+			<if test="startDate != null">start_date = #{startDate},</if>
+			<if test="planEndDate != null">plan_end_date = #{planEndDate},</if>
+			<if test="endDate != null">end_date = #{endDate},</if>
+			<if test="budgetAmount != null">budget_amount = #{budgetAmount},</if>
+			<if test="hourRate != null">hour_rate = #{hourRate},</if>
+			<if test="orderNum != null">order_num = #{orderNum},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where project_id = #{projectId}
+	</update>
+
+	<delete id="deleteProjectById">
+		update biz_project set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where project_id = #{projectId}
+	</delete>
+
+	<update id="deleteProjectByIds">
+		update biz_project set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where project_id in
+		<foreach collection="projectIds" item="projectId" open="(" separator="," close=")">
+			#{projectId}
+		</foreach>
+	</update>
+
+	<select id="countProjectByStatus" resultType="java.lang.Long">
+		select count(1) from biz_project where status = #{status} and del_flag = '0'
+		<if test="deptId != null"> and dept_id = #{deptId} </if>
+		<if test="ownerId != null"> and owner_id = #{ownerId} </if>
+	</select>
+
+	<select id="countTaskByProjectId" parameterType="java.lang.Long" resultType="java.lang.Long">
+		select count(1) from biz_task where project_id = #{projectId} and del_flag = '0'
+	</select>
+
+</mapper>

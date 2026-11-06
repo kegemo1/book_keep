@@ -1,0 +1,318 @@
+/* 未登录 */
+.login-panel {
+  background: var(--surface);
+  border-radius: 32rpx;
+  padding: 90rpx 44rpx 60rpx;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.login-mark {
+  width: 140rpx;
+  height: 140rpx;
+  line-height: 140rpx;
+  border-radius: 40rpx;
+  margin: 0 auto 30rpx;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 60rpx;
+  font-weight: 500;
+  letter-spacing: 2rpx;
+  box-shadow: 0 20rpx 40rpx -22rpx rgba(36, 53, 46, 0.9);
+}
+
+.login-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+  color: var(--ink);
+}
+
+.login-desc {
+  margin: 12rpx 0 56rpx;
+  font-size: 25rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.4rpx;
+}
+
+/* ---------------- 名片 ---------------- */
+.profile {
+  background: linear-gradient(168deg, #ffffff 0%, #f7f4ed 100%);
+  border-radius: 32rpx;
+  padding: 34rpx 30rpx 26rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+
+.profile-main {
+  display: flex;
+  align-items: center;
+}
+
+/* 头像：用 view 做容器（button 的默认盒模型不可控，会把头像拉成椭圆） */
+.avatar-wrap {
+  position: relative;
+  width: 132rpx;
+  height: 132rpx;
+  flex: 0 0 132rpx;
+  margin-right: 26rpx;
+}
+
+.avatar-wrap.is-uploading {
+  opacity: 0.6;
+}
+
+/* 只有这一层裁圆，角标才有地方落脚 */
+.avatar-inner {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--soft-2);
+  box-shadow: inset 0 0 0 2rpx rgba(36, 53, 46, 0.06);
+}
+
+.avatar {
+  display: block;
+  width: 132rpx;
+  height: 132rpx;
+}
+
+/* 无头像时的兜底：昵称首字，比灰色破图占位干净 */
+.avatar-fallback {
+  width: 132rpx;
+  height: 132rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #dfe8e1 0%, #b9cbbf 100%);
+  color: #3f564b;
+  font-size: 46rpx;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+/* 透明按钮铺满整块头像，点击任意位置都能唤起头像选择。
+   注意 ①：用 inset 而不是 width/height，包裹它的 .avatar-wrap 是 132rpx 的定位容器，
+   按钮不可能溢出到右侧的昵称/保存按钮上；
+   注意 ②：opacity 用 0.01 而不是 0——部分安卓机型对完全透明的节点不做命中测试，
+   会导致「点头像没反应」；0.01 肉眼同样看不见，但一定能点到。
+   注意 ③：z-index 压在角标之上，角标那 24px 也是可点区域（button 全透明，不挡视觉） */
+.avatar-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0.01;
+  background: transparent;
+  border: none;
+  line-height: 0;
+  z-index: 3;
+}
+
+.avatar-hit::after {
+  border: none;
+}
+
+/* 右下角小圆标，替代原来压住整张图的黑条 */
+.avatar-badge,
+.avatar-loading {
+  position: absolute;
+  right: -2rpx;
+  bottom: -2rpx;
+  z-index: 1;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 18rpx;
+  letter-spacing: 0;
+  border: 4rpx solid #ffffff;
+  box-shadow: 0 4rpx 10rpx rgba(36, 53, 46, 0.18);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+.avatar-loading {
+  background: rgba(28, 33, 31, 0.72);
+}
+
+/* 右侧信息区永远盖在头像按钮之上：
+   即使头像按钮因为机型差异被撑大，输入框和保存/取消也不会被它抢走点击 */
+.profile-info {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-width: 0;
+}
+
+.nick-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.nick-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 38rpx;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.4rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.edit-icon {
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: 14rpx;
+  padding: 7rpx 18rpx;
+  line-height: 1.4;
+  border-radius: 999rpx;
+  border: 2rpx solid var(--line);
+  font-size: 20rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.6rpx;
+}
+
+.profile-sub {
+  margin-top: 10rpx;
+  font-size: 21rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.4rpx;
+}
+
+/* 必须显式给高度：input 自带约 1.4rem 的默认高度，一旦加了上下 padding
+   （盒模型是 border-box），内容区会比字还矮，文字就被输入框边线拦腰截断 */
+.nick-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 22rpx;
+  background: var(--surface);
+  border: 2rpx solid var(--line);
+  border-radius: 16rpx;
+  font-size: 29rpx;
+  color: var(--ink);
+}
+
+/* 保存/取消：做成有实际高度的块，不用 text。
+   text 的点击热区只有文字本身（约 22px 高），手指稍偏就落到输入框上，
+   输入框一聚焦微信就拉起「头像昵称填写」浮层——用户看到的就是「点保存弹出了改头像」 */
+.edit-actions {
+  display: flex;
+  margin-top: 18rpx;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64rpx;
+  padding: 0 40rpx;
+  border-radius: 999rpx;
+  font-size: 23rpx;
+  letter-spacing: 0.6rpx;
+}
+
+.edit-btn.is-save {
+  background: var(--pine);
+  color: #f7f5f0;
+  margin-right: 16rpx;
+}
+
+.edit-btn.is-cancel {
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.edit-btn.is-hover {
+  opacity: 0.72;
+}
+
+/* 名片底部三项数据 */
+.profile-stats {
+  display: flex;
+  margin-top: 30rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx solid #efe9df;
+}
+
+.ps-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ps-cell:nth-child(2) {
+  border-left: 2rpx solid #efe9df;
+  border-right: 2rpx solid #efe9df;
+}
+
+.ps-num {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.6rpx;
+}
+
+.ps-label {
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.6rpx;
+}
+
+/* ---------------- 本月 ---------------- */
+.month-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.month-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.money-cap.is-out {
+  color: var(--out);
+}
+
+.month-num {
+  margin-top: 10rpx;
+  font-size: 42rpx;
+  font-weight: 600;
+  letter-spacing: -0.8rpx;
+}
+
+/* ---------------- 数据导出 ---------------- */
+.export-main-btn {
+  margin-top: 28rpx;
+}
+
+.export-result {
+  margin-top: 26rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid var(--line);
+}
+
+.result-line {
+  margin: 12rpx 0;
+  text-align: center;
+  font-size: 23rpx;
+  color: var(--ink-2);
+}
+
+.export-btn {
+  margin: 12rpx 0;
+}

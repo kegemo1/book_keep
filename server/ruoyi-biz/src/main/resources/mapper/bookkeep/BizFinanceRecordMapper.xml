@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.biz.mapper.BizFinanceRecordMapper">
+
+	<resultMap type="com.ruoyi.biz.domain.BizFinanceRecord" id="BizFinanceRecordResult">
+		<id     property="recordId"      column="record_id"      />
+		<result property="recordNo"      column="record_no"      />
+		<result property="userId"        column="user_id"        />
+		<result property="deptId"        column="dept_id"        />
+		<result property="projectId"     column="project_id"     />
+		<result property="taskId"        column="task_id"        />
+		<result property="categoryId"    column="category_id"    />
+		<result property="recordType"    column="record_type"    />
+		<result property="amount"        column="amount"         />
+		<result property="taxAmount"     column="tax_amount"     />
+		<result property="currency"      column="currency"       />
+		<result property="recordDate"    column="record_date"    />
+		<result property="payMethod"     column="pay_method"     />
+		<result property="settleStatus"  column="settle_status"  />
+		<result property="settledAmount" column="settled_amount" />
+		<result property="tradeNo"       column="trade_no"       />
+		<result property="counterparty"  column="counterparty"   />
+		<result property="invoiceNo"     column="invoice_no"     />
+		<result property="voucherUrl"    column="voucher_url"    />
+		<result property="source"        column="source"         />
+		<result property="delFlag"       column="del_flag"       />
+		<result property="projectName"   column="projectName"    />
+		<result property="categoryName"  column="categoryName"   />
+		<result property="userName"      column="userName"       />
+		<result property="createBy"      column="create_by"      />
+		<result property="createTime"    column="create_time"    />
+		<result property="updateBy"      column="update_by"      />
+		<result property="updateTime"    column="update_time"    />
+		<result property="remark"        column="remark"         />
+	</resultMap>
+
+	<sql id="selectRecordVo">
+		select f.record_id, f.record_no, f.user_id, f.dept_id, f.project_id, f.task_id, f.category_id, f.record_type,
+			f.amount, f.tax_amount, f.currency, f.record_date, f.pay_method, f.settle_status, f.settled_amount,
+			f.trade_no, f.counterparty, f.invoice_no, f.voucher_url, f.source, f.del_flag, f.create_by, f.create_time,
+			f.update_by, f.update_time, f.remark,
+			p.project_name as projectName, c.category_name as categoryName,
+			coalesce(u.nick_name, wu.nick_name, u.user_name) as userName
+		from biz_finance_record f
+			left join biz_project p on p.project_id = f.project_id and p.del_flag = '0'
+			left join biz_finance_category c on c.category_id = f.category_id and c.del_flag = '0'
+			left join sys_user u on u.user_id = f.user_id
+			left join biz_wx_user wu on wu.wx_user_id = f.user_id and wu.del_flag = '0'
+	</sql>
+
+	<sql id="selectProjectProfitVo">
+		select p.project_id as projectId, p.project_name as projectName, p.status as status,
+			p.customer_name as customerName, p.budget_amount as budgetAmount, p.hour_rate as hourRate,
+			ifnull(f.income_total, 0) as incomeTotal,
+			ifnull(f.cost_total, 0) as costTotal,
+			ifnull(f.settled_income, 0) as settledIncome,
+			ifnull(w.hours, 0) as workHours,
+			ifnull(w.billable_hours, 0) as billableHours
+		from biz_project p
+			left join (
+				select project_id,
+					sum(case when record_type = '0' then amount else 0 end) as income_total,
+					sum(case when record_type = '1' then amount else 0 end) as cost_total,
+					sum(case when record_type = '0' then settled_amount else 0 end) as settled_income
+				from biz_finance_record
+				where del_flag = '0' and project_id is not null
+				group by project_id
+			) f on f.project_id = p.project_id
+			left join (
+				select project_id,
+					round(sum(duration) / 3600, 2) as hours,
+					round(sum(case when billable = '0' then duration else 0 end) / 3600, 2) as billable_hours
+				from biz_work_log
+				where del_flag = '0' and log_status = '1' and project_id is not null
+				group by project_id
+			) w on w.project_id = p.project_id
+	</sql>
+
+	<select id="selectRecordList" parameterType="com.ruoyi.biz.domain.BizFinanceRecord" resultMap="BizFinanceRecordResult">
+		<include refid="selectRecordVo"/>
+		<where>
+			f.del_flag = '0'
+			<if test="recordNo != null and recordNo != ''"> AND f.record_no like concat('%', #{recordNo}, '%') </if>
+			<if test="userId != null"> AND f.user_id = #{userId} </if>
+			<if test="deptId != null"> AND f.dept_id = #{deptId} </if>
+			<if test="projectId != null"> AND f.project_id = #{projectId} </if>
+			<if test="taskId != null"> AND f.task_id = #{taskId} </if>
+			<if test="categoryId != null"> AND f.category_id = #{categoryId} </if>
+			<if test="recordType != null and recordType != ''"> AND f.record_type = #{recordType} </if>
+			<if test="payMethod != null and payMethod != ''"> AND f.pay_method = #{payMethod} </if>
+			<if test="settleStatus != null and settleStatus != ''"> AND f.settle_status = #{settleStatus} </if>
+			<if test="counterparty != null and counterparty != ''"> AND f.counterparty like concat('%', #{counterparty}, '%') </if>
+			<if test="tradeNo != null and tradeNo != ''"> AND f.trade_no = #{tradeNo} </if>
+			<if test="params.beginRecordDate != null and params.beginRecordDate != ''"> AND f.record_date &gt;= #{params.beginRecordDate} </if>
+			<if test="params.endRecordDate != null and params.endRecordDate != ''"> AND f.record_date &lt;= #{params.endRecordDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		order by f.record_date desc, f.record_id desc
+	</select>
+
+	<select id="selectRecordById" parameterType="java.lang.Long" resultMap="BizFinanceRecordResult">
+		<include refid="selectRecordVo"/>
+		where f.del_flag = '0' and f.record_id = #{recordId}
+	</select>
+
+	<select id="checkRecordNoUnique" parameterType="java.lang.String" resultMap="BizFinanceRecordResult">
+		<include refid="selectRecordVo"/>
+		where f.record_no = #{recordNo} limit 1
+	</select>
+
+	<insert id="insertRecord" parameterType="com.ruoyi.biz.domain.BizFinanceRecord" useGeneratedKeys="true" keyProperty="recordId">
+		insert into biz_finance_record(
+			<if test="recordNo != null and recordNo != ''">record_no,</if>
+			<if test="userId != null">user_id,</if>
+			<if test="deptId != null">dept_id,</if>
+			<if test="projectId != null">project_id,</if>
+			<if test="taskId != null">task_id,</if>
+			<if test="categoryId != null">category_id,</if>
+			<if test="recordType != null and recordType != ''">record_type,</if>
+			<if test="amount != null">amount,</if>
+			<if test="taxAmount != null">tax_amount,</if>
+			<if test="currency != null and currency != ''">currency,</if>
+			<if test="recordDate != null">record_date,</if>
+			<if test="payMethod != null and payMethod != ''">pay_method,</if>
+			<if test="settleStatus != null and settleStatus != ''">settle_status,</if>
+			<if test="settledAmount != null">settled_amount,</if>
+			<if test="tradeNo != null">trade_no,</if>
+			<if test="counterparty != null">counterparty,</if>
+			<if test="invoiceNo != null">invoice_no,</if>
+			<if test="voucherUrl != null">voucher_url,</if>
+			<if test="source != null and source != ''">source,</if>
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null and createBy != ''">create_by,</if>
+			create_time
+		)values(
+			<if test="recordNo != null and recordNo != ''">#{recordNo},</if>
+			<if test="userId != null">#{userId},</if>
+			<if test="deptId != null">#{deptId},</if>
+			<if test="projectId != null">#{projectId},</if>
+			<if test="taskId != null">#{taskId},</if>
+			<if test="categoryId != null">#{categoryId},</if>
+			<if test="recordType != null and recordType != ''">#{recordType},</if>
+			<if test="amount != null">#{amount},</if>
+			<if test="taxAmount != null">#{taxAmount},</if>
+			<if test="currency != null and currency != ''">#{currency},</if>
+			<if test="recordDate != null">#{recordDate},</if>
+			<if test="payMethod != null and payMethod != ''">#{payMethod},</if>
+			<if test="settleStatus != null and settleStatus != ''">#{settleStatus},</if>
+			<if test="settledAmount != null">#{settledAmount},</if>
+			<if test="tradeNo != null">#{tradeNo},</if>
+			<if test="counterparty != null">#{counterparty},</if>
+			<if test="invoiceNo != null">#{invoiceNo},</if>
+			<if test="voucherUrl != null">#{voucherUrl},</if>
+			<if test="source != null and source != ''">#{source},</if>
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null and createBy != ''">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateRecord" parameterType="com.ruoyi.biz.domain.BizFinanceRecord">
+		update biz_finance_record
+		<set>
+			<if test="recordNo != null and recordNo != ''">record_no = #{recordNo},</if>
+			<if test="deptId != null">dept_id = #{deptId},</if>
+			<if test="projectId != null">project_id = #{projectId},</if>
+			<if test="taskId != null">task_id = #{taskId},</if>
+			<if test="categoryId != null">category_id = #{categoryId},</if>
+			<if test="recordType != null and recordType != ''">record_type = #{recordType},</if>
+			<if test="amount != null">amount = #{amount},</if>
+			<if test="taxAmount != null">tax_amount = #{taxAmount},</if>
+			<if test="currency != null and currency != ''">currency = #{currency},</if>
+			<if test="recordDate != null">record_date = #{recordDate},</if>
+			<if test="payMethod != null and payMethod != ''">pay_method = #{payMethod},</if>
+			<if test="settleStatus != null and settleStatus != ''">settle_status = #{settleStatus},</if>
+			<if test="settledAmount != null">settled_amount = #{settledAmount},</if>
+			<if test="tradeNo != null">trade_no = #{tradeNo},</if>
+			<if test="counterparty != null">counterparty = #{counterparty},</if>
+			<if test="invoiceNo != null">invoice_no = #{invoiceNo},</if>
+			<if test="voucherUrl != null">voucher_url = #{voucherUrl},</if>
+			<if test="source != null and source != ''">source = #{source},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where record_id = #{recordId}
+	</update>
+
+	<update id="updateSettle" parameterType="com.ruoyi.biz.domain.BizFinanceRecord">
+		update biz_finance_record
+		<set>
+			<if test="settleStatus != null and settleStatus != ''">settle_status = #{settleStatus},</if>
+			<if test="settledAmount != null">settled_amount = #{settledAmount},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where record_id = #{recordId} and del_flag = '0'
+	</update>
+
+	<delete id="deleteRecordById">
+		update biz_finance_record set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where record_id = #{recordId}
+	</delete>
+
+	<update id="deleteRecordByIds">
+		update biz_finance_record set del_flag = '2', update_by = #{updateBy}, update_time = sysdate() where record_id in
+		<foreach collection="recordIds" item="recordId" open="(" separator="," close=")">
+			#{recordId}
+		</foreach>
+	</update>
+
+	<select id="selectTotalAmount" parameterType="com.ruoyi.biz.domain.BizFinanceRecord" resultType="java.math.BigDecimal">
+		<if test="recordType != null and recordType != ''">
+			select ifnull(sum(f.amount), 0) from biz_finance_record f
+			<where>
+				f.del_flag = '0' and f.record_type = #{recordType}
+				<if test="projectId != null"> AND f.project_id = #{projectId} </if>
+				<if test="userId != null"> AND f.user_id = #{userId} </if>
+				<if test="deptId != null"> AND f.dept_id = #{deptId} </if>
+				<if test="params.beginRecordDate != null and params.beginRecordDate != ''"> AND f.record_date &gt;= #{params.beginRecordDate} </if>
+				<if test="params.endRecordDate != null and params.endRecordDate != ''"> AND f.record_date &lt;= #{params.endRecordDate} </if>
+			</where>
+		</if>
+		<if test="recordType == null or recordType == ''">
+			select ifnull(sum(case when f.record_type = '0' then f.amount else -f.amount end), 0) from biz_finance_record f
+			<where>
+				f.del_flag = '0'
+				<if test="projectId != null"> AND f.project_id = #{projectId} </if>
+				<if test="userId != null"> AND f.user_id = #{userId} </if>
+				<if test="deptId != null"> AND f.dept_id = #{deptId} </if>
+				<if test="params.beginRecordDate != null and params.beginRecordDate != ''"> AND f.record_date &gt;= #{params.beginRecordDate} </if>
+				<if test="params.endRecordDate != null and params.endRecordDate != ''"> AND f.record_date &lt;= #{params.endRecordDate} </if>
+			</where>
+		</if>
+	</select>
+
+	<select id="selectCategoryStat" parameterType="com.ruoyi.biz.domain.BizFinanceRecord" resultType="com.ruoyi.biz.domain.vo.CategoryStatVO">
+		select f.category_id as categoryId,
+			c.category_name as categoryName,
+			c.category_type as categoryType,
+			ifnull(sum(f.amount), 0) as totalAmount,
+			count(1) as recordCount
+		from biz_finance_record f
+			left join biz_finance_category c on c.category_id = f.category_id and c.del_flag = '0'
+		<where>
+			f.del_flag = '0'
+			<if test="recordType != null and recordType != ''"> AND f.record_type = #{recordType} </if>
+			<if test="projectId != null"> AND f.project_id = #{projectId} </if>
+			<if test="userId != null"> AND f.user_id = #{userId} </if>
+			<if test="deptId != null"> AND f.dept_id = #{deptId} </if>
+			<if test="params.beginRecordDate != null and params.beginRecordDate != ''"> AND f.record_date &gt;= #{params.beginRecordDate} </if>
+			<if test="params.endRecordDate != null and params.endRecordDate != ''"> AND f.record_date &lt;= #{params.endRecordDate} </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		group by f.category_id, c.category_name, c.category_type
+		order by totalAmount desc
+	</select>
+
+	<select id="selectProjectProfit" parameterType="com.ruoyi.biz.domain.BizProject" resultType="com.ruoyi.biz.domain.vo.ProjectProfitVO">
+		<include refid="selectProjectProfitVo"/>
+		<where>
+			p.del_flag = '0'
+			<if test="projectId != null"> and p.project_id = #{projectId} </if>
+			<if test="ownerId != null"> and p.owner_id = #{ownerId} </if>
+			<if test="status != null and status != ''"> and p.status = #{status} </if>
+			<if test="projectName != null and projectName != ''"> and p.project_name like concat('%', #{projectName}, '%') </if>
+			<if test="customerName != null and customerName != ''"> and p.customer_name like concat('%', #{customerName}, '%') </if>
+			<!-- 数据范围过滤 -->
+			${params.dataScope}
+		</where>
+		order by ifnull(f.income_total, 0) desc, p.project_id desc
+	</select>
+
+	<select id="selectProjectProfitById" parameterType="java.lang.Long" resultType="com.ruoyi.biz.domain.vo.ProjectProfitVO">
+		<include refid="selectProjectProfitVo"/>
+		where p.del_flag = '0' and p.project_id = #{projectId}
+	</select>
+
+	<select id="countRecordByProjectId" parameterType="java.lang.Long" resultType="java.lang.Long">
+		select count(1) from biz_finance_record where project_id = #{projectId} and del_flag = '0'
+	</select>
+
+	<select id="selectReceivableTotal" parameterType="com.ruoyi.biz.domain.BizFinanceRecord" resultType="java.math.BigDecimal">
+		select ifnull(sum(f.amount - f.settled_amount), 0) from biz_finance_record f
+		<where>
+			f.del_flag = '0' and f.record_type = '0' and f.settle_status &lt;&gt; '0'
+			<if test="projectId != null"> AND f.project_id = #{projectId} </if>
+			<if test="userId != null"> AND f.user_id = #{userId} </if>
+			<if test="deptId != null"> AND f.dept_id = #{deptId} </if>
+		</where>
+	</select>
+
+</mapper>

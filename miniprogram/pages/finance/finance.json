@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "收支记账",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "onReachBottomDistance": 50,
+  "usingComponents": {}
+}

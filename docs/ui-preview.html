@@ -1,0 +1,2943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>账时记 · 界面预览</title>
+<style>
+/* app.wxss */
+/* ==========================================================================
+   账时记 · 设计系统
+   --------------------------------------------------------------------------
+   视觉概念：纸感账本
+   - 底色用暖纸白而不是冷灰，避免"后台系统"的僵硬感
+   - 主色取深松绿（#24352E），只出现在主按钮、选中态与关键数字上
+   - 收支语义色降饱和：苔绿 = 收入，陶土 = 支出，赭金 = 待收/提醒
+   - 层级靠留白、发丝线与极轻阴影建立，不靠重色块
+   ========================================================================== */
+
+.phone {
+  /* 底色与面 */
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --soft: #faf8f4;
+  --soft-2: #f2efe8;
+
+  /* 文字 */
+  --ink: #1c211f;
+  --ink-2: #6b6e68;
+  --ink-3: #a3a69f;
+
+  /* 分隔与阴影 */
+  --line: #ece7de;
+  --shadow: 0 0.5px 1px rgba(28, 33, 31, 0.03), 0 6px 16px -10px rgba(28, 33, 31, 0.22);
+
+  /* 品牌 */
+  --pine: #24352e;
+  --pine-2: #3b5648;
+  --sage: #edf2ee;
+
+  /* 语义 */
+  --in: #41795a;
+  --in-soft: #eaf2ec;
+  --out: #ae5f49;
+  --out-soft: #f9ede8;
+  --gold: #a57c2e;
+  --gold-soft: #f8f0df;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+view, text, input, textarea, button, picker {
+  box-sizing: border-box;
+}
+
+/* input 自带约 1.4rem（≈22px）的默认高度：字号一旦接近或超过它，
+   文字就会被输入框的边线拦腰截断（"我的"页昵称输入框踩过这个坑）。
+   这里给一个随字号走的兜底高度，各页面不用再单独算 */
+input {
+  min-height: 1.9em;
+}
+
+/* 数字统一用等宽数字，金额与时长对齐才不跳动 */
+.figure {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.2px;
+}
+
+/* ---------------- 页面容器 ---------------- */
+.container {
+  padding: 4px 12px calc(28px + 0px);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ---------------- 页头 ---------------- */
+.page-head {
+  padding: 12px 4px 14px;
+}
+
+.page-head .hello {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+.page-head .hello-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+/* ---------------- 卡片 ---------------- */
+.card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.card-flat {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+/* 卡片头部：标题左，动作右 */
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 12px;
+  letter-spacing: 0.1px;
+}
+
+.card-title .more {
+  display: flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink-3);
+  letter-spacing: 0.2px;
+}
+
+/* 卡片内的细分隔线 */
+.hairline {
+  height: 1px;
+  background: var(--line);
+  margin: 12px 0;
+}
+
+.hairline-dash {
+  height: 0;
+  border-top: 1px dashed var(--line);
+  margin: 12px 0;
+}
+
+/* ---------------- 布局 ---------------- */
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-3 {
+  display: flex;
+}
+
+.grid-3 > view {
+  flex: 1;
+  text-align: center;
+}
+
+/* ---------------- 文字 ---------------- */
+.text-sub {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.text-mute {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.text-danger {
+  color: var(--out);
+}
+
+.text-success {
+  color: var(--in);
+}
+
+.text-warn {
+  color: var(--gold);
+}
+
+.text-strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* 小标签文字：字距略松，读起来更像"标注"而不是"内容" */
+.label-mono {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.7px;
+}
+
+/* ---------------- 金额 ---------------- */
+.money-in {
+  color: var(--in);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-out {
+  color: var(--out);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- 按钮 ---------------- */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 499.5px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.btn:active {
+  transform: scale(0.985);
+  opacity: 0.92;
+}
+
+.btn-primary {
+  background: var(--pine);
+  color: #f7f5f0;
+  box-shadow: 0 7px 15px -9px rgba(36, 53, 46, 0.85);
+}
+
+.btn-danger {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.btn-plain {
+  background: transparent;
+  color: var(--pine);
+  border: 1px solid rgba(36, 53, 46, 0.22);
+}
+
+.btn-gray {
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.btn-ghost {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-disabled {
+  background: #d9d6cf;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.btn-sm {
+  display: inline-flex;
+  height: 32px;
+  padding: 0 15px;
+  font-size: 12.5px;
+  border-radius: 499.5px;
+}
+
+/* ---------------- 胶囊标签 ---------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 499.5px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin-right: 5px;
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.tag-blue {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.tag-green {
+  background: var(--in-soft);
+  color: var(--in);
+}
+
+.tag-red {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.tag-orange {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.tag-gray {
+  background: #f1eee8;
+  color: var(--ink-3);
+}
+
+/* 带小圆点的状态标签，比纯色块更轻 */
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 5px;
+  background: currentColor;
+}
+
+/* ---------------- 列表 ---------------- */
+.list-item {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.list-item:first-child {
+  padding-top: 2px;
+}
+
+/* 功能入口行：左字块图标 + 标题 + 右箭头 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item .glyph {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 11px;
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.menu-item .glyph.is-pine {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.menu-item .glyph.is-clay {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.menu-item .menu-text {
+  flex: 1;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.menu-item .arrow {
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid var(--ink-3);
+  border-right: 1px solid var(--ink-3);
+  transform: rotate(45deg);
+  margin-left: 6px;
+}
+
+/* ---------------- 表单 ---------------- */
+.form-row {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.form-row:last-of-type {
+  border-bottom: none;
+}
+
+.form-row .label {
+  width: 88px;
+  flex-shrink: 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+
+.form-row .value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.form-row picker,
+.form-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-row switch {
+  margin-left: auto;
+}
+
+.form-row .placeholder {
+  color: #bcb9b1;
+}
+
+.input-right {
+  text-align: right;
+}
+
+/* 输入区：软底、无边框，靠底色区分"可输入" */
+.content-box {
+  background: var(--soft);
+  border-radius: 11px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.content-input {
+  width: 100%;
+  font-size: 14px;
+  min-height: 52px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* ---------------- 空态 / 加载 ---------------- */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 45px 20px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: #cdc9c0;
+  font-size: 22px;
+  margin-bottom: 11px;
+}
+
+.loading {
+  text-align: center;
+  padding: 22px 0;
+  color: var(--ink-3);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ---------------- 悬浮按钮 ---------------- */
+.fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(24px + 0px);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+  padding-bottom: 3px;
+  box-shadow: 0 9px 18px -8px rgba(36, 53, 46, 0.75);
+  z-index: 50;
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+/* ---------------- 底部面板 ---------------- */
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(28, 33, 31, 0.42);
+  z-index: 100;
+  animation: fade-in 0.2s ease;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-radius: 18px 18px 0 0;
+  padding: 6px 16px calc(20px + 0px);
+  z-index: 101;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: sheet-up 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 顶部小横条：让面板看起来是"拉起来的一张纸" */
+.sheet-handle {
+  width: 34px;
+  height: 4px;
+  border-radius: 4px;
+  background: #e2ded5;
+  margin: 4px auto 2px;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 4px;
+  margin-bottom: 4px;
+}
+
+.sheet-title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+}
+
+.sheet-close {
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 5px 2px 5px 10px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(30px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------------- 分段筛选器 ---------------- */
+.seg {
+  display: flex;
+  padding: 3px;
+  background: #efece5;
+  border-radius: 499.5px;
+  margin-bottom: 11px;
+}
+
+.seg-item {
+  flex: 1;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-2);
+  border-radius: 499.5px;
+  transition: all 0.2s ease;
+}
+
+.seg-item.active {
+  background: var(--surface);
+  color: var(--pine);
+  font-weight: 600;
+  box-shadow: 0 3px 8px -5px rgba(28, 33, 31, 0.45);
+}
+
+/* ---------------- 收支双栏（首页 / 记账页共用） ---------------- */
+.money-pair {
+  display: flex;
+  align-items: stretch;
+}
+
+.money-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.money-cap {
+  display: flex;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.4px;
+}
+
+.money-cell.is-in .money-cap {
+  color: var(--in);
+}
+
+.money-cell.is-out .money-cap {
+  color: var(--out);
+}
+
+.money-num {
+  margin-top: 5px;
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-cell.is-in .money-num {
+  color: var(--in);
+}
+
+.money-cell.is-out .money-num {
+  color: var(--out);
+}
+
+.money-divider {
+  width: 1px;
+  background: var(--line);
+  margin: 3px 15px;
+}
+
+/* 赭金胶囊：待收/提醒类信息 */
+.chip-gold {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 499.5px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.chip-gold-k {
+  margin-right: 4px;
+  opacity: 0.72;
+}
+
+/* components/timer-card/timer-card.wxss */
+/* 计时器组件：本身透明，由外层 .timer-hero 提供深色底 */
+.tc {
+  position: relative;
+  z-index: 1;
+}
+
+.tc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-kicker {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: rgba(247, 245, 240, 0.5);
+}
+
+/* 状态胶囊：半透明白底，running 时圆点点亮 */
+.tc-state {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 499.5px;
+  background: rgba(247, 245, 240, 0.1);
+  color: rgba(247, 245, 240, 0.62);
+  font-size: 10.5px;
+  letter-spacing: 0.3px;
+}
+
+.tc-state.is-on {
+  background: rgba(158, 214, 180, 0.16);
+  color: #a9d9bd;
+}
+
+.tc-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 5px;
+  background: rgba(247, 245, 240, 0.4);
+}
+
+.tc-state.is-on .tc-dot {
+  background: #86d3a6;
+  box-shadow: 0 0 0 3px rgba(134, 211, 166, 0.16);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(134, 211, 166, 0.14); }
+  50% { box-shadow: 0 0 0 5px rgba(134, 211, 166, 0.05); }
+}
+
+/* 数字是这个页面的主角，用等宽数字保证每秒跳动不左右抖 */
+.tc-time {
+  margin-top: 11px;
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 1px;
+  color: #f7f5f0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-family: "SF Mono", "DIN Alternate", Menlo, Consolas, monospace;
+}
+
+.tc-time.is-idle {
+  color: rgba(247, 245, 240, 0.32);
+}
+
+.tc-meta {
+  margin-top: 12px;
+}
+
+.tc-meta-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.tc-k {
+  width: 38px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: rgba(247, 245, 240, 0.42);
+  letter-spacing: 0.5px;
+}
+
+.tc-v {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: rgba(247, 245, 240, 0.86);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tc-tip {
+  margin-top: 9px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: rgba(214, 168, 96, 0.16);
+  color: #e8c88f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.tc-btns {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.tc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 499.5px;
+  font-size: 14.5px;
+  letter-spacing: 0.3px;
+}
+
+.tc-btn.is-primary {
+  flex: 1;
+  background: #f7f5f0;
+  color: #24352e;
+  font-weight: 600;
+}
+
+.tc-btn.is-ghost {
+  width: 90px;
+  margin-left: 9px;
+  background: rgba(247, 245, 240, 0.09);
+  color: rgba(247, 245, 240, 0.72);
+}
+
+.tc-btn:active {
+  opacity: 0.86;
+  transform: scale(0.99);
+}
+
+.tc-hint {
+  margin-top: 11px;
+  font-size: 12px;
+  color: rgba(247, 245, 240, 0.46);
+}
+
+/* pages/index/index.wxss */
+/* 计时器 Hero：整页视觉重心 */
+.timer-hero {
+  position: relative;
+  border-radius: 17px;
+  padding: 15px 15px 13px;
+  margin-bottom: 11px;
+  overflow: hidden;
+  background: radial-gradient(130% 120% at 86% -10%, #3f5d4d 0%, #2c4036 45%, #1e2e27 100%);
+  box-shadow: 0 13px 27px -15px rgba(30, 46, 39, 0.95);
+}
+
+/* 右上角一层极淡的光晕，避免深色块死板 */
+.timer-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(150, 196, 170, 0.22) 0%, rgba(150, 196, 170, 0) 68%);
+  pointer-events: none;
+}
+
+/* 工时：左大右小 */
+.stat-line {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.stat-main-num {
+  font-size: 33px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -0.8px;
+}
+
+.stat-main-num .stat-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 3px;
+}
+
+.stat-main .label-mono {
+  margin-top: 5px;
+}
+
+.stat-aside {
+  display: flex;
+  align-items: flex-end;
+}
+
+.aside-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* 只在两个小格之间画分隔线，避免第一格左侧多出一条 */
+.aside-cell + .aside-cell {
+  padding-left: 15px;
+  margin-left: 15px;
+  border-left: 1px solid var(--line);
+}
+
+.aside-num {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
+
+.aside-label {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+}
+
+/* 净额（收支双栏样式已提升到 app.wxss 共用） */
+.net-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.net-num {
+  margin-top: 3px;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.4px;
+}
+
+.net-num.is-neg {
+  color: var(--out);
+}
+
+/* 图表右上角总计 */
+.chart-total {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.2px;
+}
+
+/* 表单占位符 */
+.ph {
+  color: #bcb9b1;
+}
+
+/* pages/worklog/worklog.wxss */
+/* 今日总览 */
+.today-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.today-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.today-num {
+  margin-top: 3px;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -0.8px;
+}
+
+.today-unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 3px;
+}
+
+.today-meta {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+.today-action {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 499.5px;
+  background: var(--sage);
+  color: var(--pine);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.today-action:active {
+  opacity: 0.85;
+}
+
+.today-plus {
+  margin-right: 3px;
+  font-size: 14px;
+}
+
+/* 计时器 Hero 与首页保持一致 */
+.timer-hero {
+  position: relative;
+  border-radius: 17px;
+  padding: 15px 15px 13px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: radial-gradient(130% 120% at 86% -10%, #3f5d4d 0%, #2c4036 45%, #1e2e27 100%);
+  box-shadow: 0 13px 27px -15px rgba(30, 46, 39, 0.95);
+}
+
+.timer-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(150, 196, 170, 0.22) 0%, rgba(150, 196, 170, 0) 68%);
+  pointer-events: none;
+}
+
+.count-text {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+/* ---------------- 记录行：日期栏 + 内容 ---------------- */
+.rec {
+  display: flex;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.rec:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.rec-date {
+  width: 46px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.rec-day {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.2px;
+}
+
+.rec-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rec-proj {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rec-hours {
+  flex-shrink: 0;
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pine);
+  letter-spacing: -0.2px;
+}
+
+.rec-hours-unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 1px;
+}
+
+.rec-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.rec-time {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+
+/* 备注：左侧一条细线，像页边批注 */
+.rec-content {
+  margin-top: 6px;
+  padding-left: 8px;
+  border-left: 1.5px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.rec-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.rec-meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 来源：发丝线描边，比底色块轻一档，只用来扫视 */
+.rec-src {
+  flex-shrink: 0;
+  height: 17px;
+  line-height: 17px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 499.5px;
+  font-size: 9.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.2px;
+}
+
+/* 状态：小圆点 + 文字。账本里颜色只承担语义，不做装饰性色块 */
+.rec-state {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 10px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.1px;
+}
+
+.rec-state-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  margin-right: 4.5px;
+  background: currentColor;
+}
+
+.rec-state.is-billable {
+  color: var(--in);
+}
+
+.rec-state.is-free {
+  color: var(--ink-3);
+}
+
+.rec-state.is-running {
+  color: var(--gold);
+}
+
+.rec-state.is-void {
+  color: var(--out);
+}
+
+/* 作废的记录整体褪色，只留状态那一处陶土色，扫一眼就知道这条不算数 */
+.rec.is-void .rec-day,
+.rec.is-void .rec-proj,
+.rec.is-void .rec-hours,
+.rec.is-void .rec-sub,
+.rec.is-void .rec-time,
+.rec.is-void .rec-content {
+  opacity: 0.48;
+}
+
+.rec-op {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  padding: 3px 0 3px 10px;
+}
+
+.rec-op.is-in {
+  color: var(--pine);
+  font-weight: 600;
+}
+
+.rec-note {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--gold);
+}
+
+/* 占位符 */
+.ph {
+  color: #bcb9b1;
+}
+
+/* pages/finance/finance.wxss */
+/* 汇总卡 */
+.sum-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.sum-head {
+  margin-bottom: 14px;
+}
+
+.sum-money .money-num {
+  font-size: 26px;
+  letter-spacing: -0.7px;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  margin-top: 15px;
+  border-radius: 499.5px;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  box-shadow: 0 8px 15px -9px rgba(36, 53, 46, 0.9);
+}
+
+.add-btn:active {
+  opacity: 0.9;
+  transform: scale(0.99);
+}
+
+.add-plus {
+  margin-right: 4px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* 环形图 */
+.ring-wrap {
+  display: flex;
+  align-items: center;
+  padding: 3px 0 1px;
+}
+
+.ring-chart {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ring-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 69px;
+  height: 69px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-cny {
+  font-size: 9px;
+  color: var(--ink-3);
+  letter-spacing: 0.5px;
+}
+
+.ring-total {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.ring-legend {
+  flex: 1;
+  min-width: 0;
+  margin-left: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  padding: 3.5px 0;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 2.5px;
+  margin-right: 7px;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--ink-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.legend-pct {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-left: 6px;
+}
+
+/* ---------------- 账单行 ---------------- */
+.bill {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bill:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+/* 类别首字色块：比整行染色克制，又能快速扫读 */
+.bill-tile {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-right: 11px;
+}
+
+.bill-tile.is-in {
+  background: var(--in-soft);
+  color: var(--in);
+}
+
+.bill-tile.is-out {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.bill-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.bill-cat {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.bill-amt {
+  margin-left: 10px;
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.bill-amt.is-in {
+  color: var(--in);
+}
+
+.bill-amt.is-out {
+  color: var(--out);
+}
+
+.bill-sub {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bill-foot {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.bill-date {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-right: 7px;
+}
+
+.bill-remark {
+  margin-top: 5px;
+  padding-left: 7px;
+  border-left: 1.5px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+/* ---------------- 记一笔面板 ---------------- */
+.type-switch {
+  display: flex;
+  padding: 3px;
+  background: #efece5;
+  border-radius: 11px;
+  margin: 8px 0 4px;
+}
+
+.type-item {
+  flex: 1;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-2);
+  border-radius: 9px;
+  transition: all 0.2s ease;
+}
+
+.type-item.is-out {
+  background: var(--out-soft);
+  color: var(--out);
+  font-weight: 600;
+}
+
+.type-item.is-in {
+  background: var(--in-soft);
+  color: var(--in);
+  font-weight: 600;
+}
+
+/* 金额是面板里最重要的输入，字号加大 */
+.amount-input {
+  font-size: 21px !important;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.field-tip {
+  padding: 4px 2px 2px;
+  font-size: 10px;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.voucher-row {
+  align-items: flex-start;
+}
+
+.voucher-pick {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.voucher-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  background: var(--soft-2);
+}
+
+.voucher-empty {
+  width: 84px;
+  height: 56px;
+  border-radius: 10px;
+  border: 1px dashed #ded9cf;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--soft);
+}
+
+.voucher-plus {
+  font-size: 14px;
+  color: var(--ink-3);
+  line-height: 1.1;
+}
+
+.voucher-hint {
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+.voucher-del {
+  font-size: 10.5px;
+  color: var(--out);
+  margin-top: 5px;
+}
+
+.ph {
+  color: #bcb9b1;
+}
+
+/* pages/project/project.wxss */
+/* 总览卡 */
+.summary {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.summary-count {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+.summary-net {
+  display: flex;
+  align-items: baseline;
+  margin-top: 12px;
+}
+
+.net-k {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-right: 7px;
+  letter-spacing: 0.5px;
+}
+
+.net-v {
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -1px;
+}
+
+.net-v.is-neg {
+  color: var(--out);
+}
+
+.summary-pair {
+  display: flex;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.pair-cell {
+  flex: 1;
+}
+
+.pair-cap {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--in);
+  letter-spacing: 0.4px;
+}
+
+.pair-cap.is-out {
+  color: var(--out);
+}
+
+.pair-v {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------------- 项目卡片 ---------------- */
+.proj {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.proj-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.proj-titles {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.proj-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.1px;
+  line-height: 1.35;
+}
+
+.proj-sub {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.proj-code {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--soft-2);
+  font-size: 9.5px;
+  letter-spacing: 0.2px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 499.5px;
+  background: var(--soft-2);
+  color: var(--ink-3);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.status-pill.is-on {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.proj-meta {
+  display: flex;
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.proj-meta text {
+  margin-right: 12px;
+}
+
+/* 收入 / 成本对比条 */
+.bar-chart {
+  margin-top: 10px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.bar-k {
+  width: 17px;
+  font-size: 10px;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--soft-2);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.bar-fill.is-in {
+  background: linear-gradient(90deg, #86b39b, #41795a);
+}
+
+.bar-fill.is-out {
+  background: linear-gradient(90deg, #d6a08c, #ae5f49);
+}
+
+.bar-amt {
+  width: 63px;
+  text-align: right;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.bar-amt.is-in {
+  color: var(--in);
+}
+
+.bar-amt.is-out {
+  color: var(--out);
+}
+
+/* 六项指标 */
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.metric {
+  width: 33.333%;
+  padding: 9px 0 6px;
+}
+
+.m-k {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+.m-v {
+  display: block;
+  margin-top: 3px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.1px;
+}
+
+.m-u {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 1px;
+}
+
+/* 预算 */
+.budget {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.budget-head {
+  margin-bottom: 6px;
+}
+
+.budget-k {
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.budget-flag {
+  font-size: 10.5px;
+  color: var(--out);
+}
+
+.budget-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--soft-2);
+  overflow: hidden;
+}
+
+.budget-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #8aa89a, #4f6b5f);
+}
+
+.budget-fill.is-over {
+  background: linear-gradient(90deg, #d6a08c, #ae5f49);
+}
+
+/* 底部：比率 + 应收 + 操作 */
+.proj-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.foot-rate,
+.foot-receivable {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.1px;
+}
+
+.proj-ops {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.op {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  padding: 5px 0 3px 15px;
+}
+
+.op.is-danger {
+  color: var(--out);
+}
+
+.no-data {
+  margin-top: 8px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  background: var(--soft);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
+.tip {
+  margin-top: 5px;
+  padding: 0 10px 75px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-align: center;
+  line-height: 1.7;
+}
+
+.ph {
+  color: #bcb9b1;
+}
+
+/* pages/task/task.wxss */
+.head-note {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 20px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.75;
+  text-align: center;
+}
+
+.head-note .empty-icon {
+  margin: 0 auto 10px;
+}
+
+/* 任务卡：左侧色条 + 内容区 */
+.task {
+  position: relative;
+  display: flex;
+  background: var(--surface);
+  border-radius: 13px;
+  margin-bottom: 9px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.task-strip {
+  width: 4px;
+  flex-shrink: 0;
+  background: var(--line);
+}
+
+.task-strip.is-high {
+  background: linear-gradient(180deg, #c98572, #ae5f49);
+}
+
+.task-strip.is-mid {
+  background: linear-gradient(180deg, #cfae76, #a57c2e);
+}
+
+.task-strip.is-low {
+  background: #dcd7cd;
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 14px 6px 13px;
+}
+
+.task-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.task-name {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.task-name.is-done {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+
+.task-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 499.5px;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  background: var(--soft-2);
+  color: var(--ink-3);
+}
+
+.task-status.is-todo {
+  background: var(--soft-2);
+  color: var(--ink-3);
+}
+
+.task-status.is-doing {
+  background: var(--sage);
+  color: var(--pine);
+}
+
+.task-status.is-done {
+  background: var(--in-soft);
+  color: var(--in);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 7px;
+}
+
+.prio {
+  height: 18px;
+  line-height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--ink-3);
+  background: var(--soft-2);
+  margin-right: 9px;
+}
+
+.prio.is-high {
+  background: var(--out-soft);
+  color: var(--out);
+}
+
+.prio.is-mid {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.meta-k {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-right: 9px;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  margin-top: 9px;
+}
+
+.track {
+  flex: 1;
+  height: 6px;
+  border-radius: 4px;
+  background: var(--soft-2);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #8aa89a, #4f6b5f);
+  transition: width 0.3s ease;
+}
+
+.fill.is-done {
+  background: linear-gradient(90deg, #86b39b, #41795a);
+}
+
+.pct {
+  width: 38px;
+  text-align: right;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.task-remark {
+  margin-top: 7px;
+  padding-left: 7px;
+  border-left: 1.5px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.task-ops {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.op {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  padding: 4px 0 4px 15px;
+}
+
+.op.is-danger {
+  color: var(--out);
+}
+
+.flex-1 {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.ph {
+  color: #bcb9b1;
+}
+
+/* pages/mine/mine.wxss */
+/* 未登录 */
+.login-panel {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 45px 22px 30px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.login-mark {
+  width: 70px;
+  height: 70px;
+  line-height: 70px;
+  border-radius: 20px;
+  margin: 0 auto 15px;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  box-shadow: 0 10px 20px -11px rgba(36, 53, 46, 0.9);
+}
+
+.login-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+
+.login-desc {
+  margin: 6px 0 28px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.2px;
+}
+
+/* ---------------- 名片 ---------------- */
+.profile {
+  background: linear-gradient(168deg, #ffffff 0%, #f7f4ed 100%);
+  border-radius: 16px;
+  padding: 17px 15px 13px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.profile-main {
+  display: flex;
+  align-items: center;
+}
+
+/* 头像：用 view 做容器（button 的默认盒模型不可控，会把头像拉成椭圆） */
+.avatar-wrap {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  flex: 0 0 66px;
+  margin-right: 13px;
+}
+
+.avatar-wrap.is-uploading {
+  opacity: 0.6;
+}
+
+/* 只有这一层裁圆，角标才有地方落脚 */
+.avatar-inner {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--soft-2);
+  box-shadow: inset 0 0 0 1px rgba(36, 53, 46, 0.06);
+}
+
+.avatar {
+  display: block;
+  width: 66px;
+  height: 66px;
+}
+
+/* 无头像时的兜底：昵称首字，比灰色破图占位干净 */
+.avatar-fallback {
+  width: 66px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #dfe8e1 0%, #b9cbbf 100%);
+  color: #3f564b;
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* 透明按钮铺满整块头像，点击任意位置都能唤起头像选择。
+   注意 ①：用 inset 而不是 width/height，包裹它的 .avatar-wrap 是 66px 的定位容器，
+   按钮不可能溢出到右侧的昵称/保存按钮上；
+   注意 ②：opacity 用 0.01 而不是 0——部分安卓机型对完全透明的节点不做命中测试，
+   会导致「点头像没反应」；0.01 肉眼同样看不见，但一定能点到。
+   注意 ③：z-index 压在角标之上，角标那 24px 也是可点区域（button 全透明，不挡视觉） */
+.avatar-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0.01;
+  background: transparent;
+  border: none;
+  line-height: 0;
+  z-index: 3;
+}
+
+.avatar-hit::after {
+  border: none;
+}
+
+/* 右下角小圆标，替代原来压住整张图的黑条 */
+.avatar-badge,
+.avatar-loading {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pine);
+  color: #f7f5f0;
+  font-size: 9px;
+  letter-spacing: 0;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(36, 53, 46, 0.18);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+.avatar-loading {
+  background: rgba(28, 33, 31, 0.72);
+}
+
+/* 右侧信息区永远盖在头像按钮之上：
+   即使头像按钮因为机型差异被撑大，输入框和保存/取消也不会被它抢走点击 */
+.profile-info {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-width: 0;
+}
+
+.nick-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.nick-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.edit-icon {
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: 7px;
+  padding: 3.5px 9px;
+  line-height: 1.4;
+  border-radius: 499.5px;
+  border: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+.profile-sub {
+  margin-top: 5px;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.2px;
+}
+
+/* 必须显式给高度：input 自带约 1.4rem 的默认高度，一旦加了上下 padding
+   （盒模型是 border-box），内容区会比字还矮，文字就被输入框边线拦腰截断 */
+.nick-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+/* 保存/取消：做成有实际高度的块，不用 text。
+   text 的点击热区只有文字本身（约 22px 高），手指稍偏就落到输入框上，
+   输入框一聚焦微信就拉起「头像昵称填写」浮层——用户看到的就是「点保存弹出了改头像」 */
+.edit-actions {
+  display: flex;
+  margin-top: 9px;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 20px;
+  border-radius: 499.5px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+}
+
+.edit-btn.is-save {
+  background: var(--pine);
+  color: #f7f5f0;
+  margin-right: 8px;
+}
+
+.edit-btn.is-cancel {
+  background: var(--soft-2);
+  color: var(--ink-2);
+}
+
+.edit-btn.is-hover {
+  opacity: 0.72;
+}
+
+/* 名片底部三项数据 */
+.profile-stats {
+  display: flex;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #efe9df;
+}
+
+.ps-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ps-cell:nth-child(2) {
+  border-left: 1px solid #efe9df;
+  border-right: 1px solid #efe9df;
+}
+
+.ps-num {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.3px;
+}
+
+.ps-label {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.3px;
+}
+
+/* ---------------- 本月 ---------------- */
+.month-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.month-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.money-cap.is-out {
+  color: var(--out);
+}
+
+.month-num {
+  margin-top: 5px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+/* ---------------- 数据导出 ---------------- */
+.export-main-btn {
+  margin-top: 14px;
+}
+
+.export-result {
+  margin-top: 13px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.result-line {
+  margin: 6px 0;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.export-btn {
+  margin: 6px 0;
+}
+
+
+/* 预览页面自身的外框，不参与小程序样式 */
+body { margin: 0; background: #e9e5dd; font-family: -apple-system, "PingFang SC", sans-serif; }
+.stage { display: flex; gap: 28px; padding: 36px 36px 60px; align-items: flex-start; overflow-x: auto; }
+.frame { flex: 0 0 auto; }
+.phone {
+  position: relative;
+  width: 375px; height: 780px; display: flex; flex-direction: column;
+  border-radius: 26px; overflow: hidden;
+  box-shadow: 0 24px 50px -22px rgba(28,33,31,.45), 0 0 0 1px rgba(28,33,31,.06);
+  background: #f6f4ef;
+}
+.screen { position: relative; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.phone .container { min-height: 0 !important; padding-bottom: 28px !important; }
+.phone .fab { position: absolute; bottom: 24px; }
+.tabbar {
+  flex-shrink: 0; height: 58px; display: flex; align-items: center;
+  background: #fff; border-top: 1px solid #f1ede5; padding-bottom: 4px;
+}
+.tb-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #a3a69f; font-size: 10px; letter-spacing: .5px; }
+.tb-item img { width: 23px; height: 23px; display: block; }
+.tb-item.is-on { color: #24352e; }
+.cap { margin-top: 14px; font-size: 13px; color: #6b6e68; letter-spacing: .5px; }
+.cap span { color: #a3a69f; margin-left: 8px; font-size: 12px; }
+.chart-x { display: flex; justify-content: space-between; padding: 8px 4px 0; font-size: 9px; color: #a3a69f; }
+h1 { font-size: 15px; font-weight: 600; color: #1c211f; margin: 0 0 4px 36px; letter-spacing: .5px; }
+
+</style>
+</head>
+<body>
+<h1>账时记 · 界面预览</h1>
+<div class="stage">
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="page-head">
+    <div class="hello">晚上好</div>
+    <div class="hello-sub">10月27日 周二 · 今天也好好记录</div>
+  </div>
+
+  <div class="timer-hero">
+    <div class="tc">
+      <div class="tc-head">
+        <span class="tc-kicker">计时器</span>
+        <div class="tc-state is-on"><div class="tc-dot"></div><span>进行中</span></div>
+      </div>
+      <div class="tc-time">01:24:36</div>
+      <div class="tc-meta">
+        <div class="tc-meta-row"><span class="tc-k">项目</span><span class="tc-v">企业官网改版</span></div>
+        <div class="tc-meta-row"><span class="tc-k">任务</span><span class="tc-v">响应式前端开发</span></div>
+        <div class="tc-meta-row"><span class="tc-k">开始</span><span class="tc-v">09:12</span></div>
+      </div>
+      <div class="tc-btns">
+        <div class="tc-btn is-primary">结束并记录</div>
+        <div class="tc-btn is-ghost">丢弃</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>工时</span><span class="more">明细 ›</span></div>
+    <div class="stat-line">
+      <div class="stat-main">
+        <div class="stat-main-num figure">3.0<span class="stat-unit">h</span></div>
+        <div class="label-mono">今日已完成</div>
+      </div>
+      <div class="stat-aside">
+        <div class="aside-cell"><span class="aside-num figure">23.5</span><span class="aside-label">本周</span></div>
+        <div class="aside-cell"><span class="aside-num figure">38.3</span><span class="aside-label">本月</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>本月收支</span><span class="more">去记账 ›</span></div>
+    <div class="money-pair">
+      <div class="money-cell is-in">
+        <div class="money-cap"><div class="dot"></div><span>收入</span></div>
+        <div class="money-num figure">80,700.00</div>
+      </div>
+      <div class="money-divider"></div>
+      <div class="money-cell is-out">
+        <div class="money-cap"><div class="dot"></div><span>支出</span></div>
+        <div class="money-num figure">14,975.00</div>
+      </div>
+    </div>
+    <div class="hairline"></div>
+    <div class="row-between">
+      <div class="net-box"><span class="label-mono">净额</span><span class="net-num figure">¥65,725.00</span></div>
+      <div class="chip-gold"><span class="chip-gold-k">待收</span><span class="figure">¥22,000.00</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>近 7 天工时</span><span class="chart-total figure">21.8 h</span></div>
+    <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(36,53,46,0.12)"/>
+          <stop offset="100%" stop-color="rgba(36,53,46,0)"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="10" x2="320" y2="10" stroke="#efece5"/>
+      <line x1="0" y1="42" x2="320" y2="42" stroke="#efece5"/>
+      <line x1="0" y1="74" x2="320" y2="74" stroke="#efece5"/>
+      <path d="M8,44 L58,31 L108,38 L158,67 L208,74 L258,41 L310,47 L310,74 L8,74 Z" fill="url(#g1)"/>
+      <path d="M8,44 L58,31 L108,38 L158,67 L208,74 L258,41 L310,47" fill="none" stroke="#24352e" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+      <g fill="#24352e">
+        <circle cx="8" cy="44" r="2.4"/><circle cx="58" cy="31" r="2.4"/><circle cx="108" cy="38" r="2.4"/>
+        <circle cx="158" cy="67" r="2.4"/><circle cx="208" cy="74" r="2.4"/><circle cx="258" cy="41" r="2.4"/>
+        <circle cx="310" cy="47" r="2.4"/>
+      </g>
+    </svg>
+    <div class="chart-x"><span>10-21</span><span>10-22</span><span>10-23</span><span>10-24</span><span>10-25</span><span>10-26</span><span>10-27</span></div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item is-on"><img src="ui-assets/home-on.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item"><img src="ui-assets/user.png"><span>我的</span></div></div></div><div class="cap">首页</div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="today-card">
+    <div class="today-left">
+      <div class="label-mono">今日已完成</div>
+      <div class="today-num figure">3.0<span class="today-unit">h</span></div>
+      <div class="today-meta">3 次打卡</div>
+    </div>
+    <div class="today-action"><span class="today-plus">＋</span><span>补录</span></div>
+  </div>
+
+  <div class="timer-hero">
+    <div class="tc">
+      <div class="tc-head">
+        <span class="tc-kicker">计时器</span>
+        <div class="tc-state"><div class="tc-dot"></div><span>待开始</span></div>
+      </div>
+      <div class="tc-time is-idle">00:00:00</div>
+      <div class="tc-hint">还没有进行中的计时，选好项目即可开始</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>打卡记录</span><span class="count-text">18 条</span></div>
+
+    <div class="rec">
+      <div class="rec-date"><span class="rec-day figure">10-28</span></div>
+      <div class="rec-body">
+        <div class="rec-line"><span class="rec-proj">会员小程序开发</span><span class="rec-hours figure">0.6<span class="rec-hours-unit">h</span></span></div>
+        <div class="rec-sub">会员等级模块</div>
+        <div class="rec-time">14:20 – 计时中</div>
+        <div class="rec-foot">
+          <div class="rec-meta">
+            <span class="rec-src">计时器</span>
+            <div class="rec-state is-running"><div class="rec-state-dot"></div><span>进行中</span></div>
+          </div>
+          <span class="rec-op is-in">结束并记录</span>
+        </div>
+        <div class="rec-note">这条计时一直没结束，结束后才计入统计</div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec-date"><span class="rec-day figure">10-27</span></div>
+      <div class="rec-body">
+        <div class="rec-line"><span class="rec-proj">企业官网改版</span><span class="rec-hours figure">1.5<span class="rec-hours-unit">h</span></span></div>
+        <div class="rec-sub">响应式前端开发</div>
+        <div class="rec-time">09:12 – 10:42</div>
+        <div class="rec-content">首页骨架与栅格，先跑通 750 断点</div>
+        <div class="rec-foot">
+          <div class="rec-meta">
+            <span class="rec-src">计时器</span>
+            <div class="rec-state is-billable"><div class="rec-state-dot"></div><span>计费</span></div>
+          </div>
+          <span class="rec-op">作废</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec-date"><span class="rec-day figure">10-26</span></div>
+      <div class="rec-body">
+        <div class="rec-line"><span class="rec-proj">会员小程序开发</span><span class="rec-hours figure">2.5<span class="rec-hours-unit">h</span></span></div>
+        <div class="rec-sub">会员等级模块</div>
+        <div class="rec-time">手动补录</div>
+        <div class="rec-foot">
+          <div class="rec-meta">
+            <span class="rec-src">补录</span>
+            <div class="rec-state is-free"><div class="rec-state-dot"></div><span>不计费</span></div>
+          </div>
+          <span class="rec-op">作废</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec is-void">
+      <div class="rec-date"><span class="rec-day figure">10-24</span></div>
+      <div class="rec-body">
+        <div class="rec-line"><span class="rec-proj">经营数据看板</span><span class="rec-hours figure">1.0<span class="rec-hours-unit">h</span></span></div>
+        <div class="rec-sub">经营指标口径梳理</div>
+        <div class="rec-time">14:20 – 15:20</div>
+        <div class="rec-foot">
+          <div class="rec-meta">
+            <span class="rec-src">补录</span>
+            <div class="rec-state is-void"><div class="rec-state-dot"></div><span>已作废</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item is-on"><img src="ui-assets/time-on.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item"><img src="ui-assets/user.png"><span>我的</span></div></div></div><div class="cap">工时</div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="sum-card">
+    <div class="row-between sum-head">
+      <span class="label-mono">本月收支</span>
+      <div class="chip-gold"><span class="chip-gold-k">待收</span><span class="figure">¥22,000.00</span></div>
+    </div>
+    <div class="money-pair sum-money">
+      <div class="money-cell is-in">
+        <div class="money-cap"><div class="dot"></div><span>收入</span></div>
+        <div class="money-num figure">80,700.00</div>
+      </div>
+      <div class="money-divider"></div>
+      <div class="money-cell is-out">
+        <div class="money-cap"><div class="dot"></div><span>支出</span></div>
+        <div class="money-num figure">14,975.00</div>
+      </div>
+    </div>
+    <div class="add-btn"><span class="add-plus">＋</span><span>记一笔</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">支出构成</div>
+    <div class="ring-wrap">
+      <div class="ring-chart" style="background: conic-gradient(#24352e 0 40.1%, #6f8f7c 40.1% 61.5%, #b4864a 61.5% 74.9%, #ae5f49 74.9% 88.1%, #7e8a9b 88.1% 93.3%, #c7b49a 93.3% 98.3%, #4f6b5f 98.3% 100%)">
+        <div class="ring-center"><span class="ring-cny">¥</span><span class="ring-total figure">14,975</span></div>
+      </div>
+      <div class="ring-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#24352e"></div><span class="legend-name">外包/人力</span><span class="legend-pct figure">40.1%</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#6f8f7c"></div><span class="legend-name">硬件设备</span><span class="legend-pct figure">21.4%</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b4864a"></div><span class="legend-name">推广营销</span><span class="legend-pct figure">13.4%</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ae5f49"></div><span class="legend-name">云服务/服务器</span><span class="legend-pct figure">13.2%</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7e8a9b"></div><span class="legend-name">差旅交通</span><span class="legend-pct figure">5.2%</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c7b49a"></div><span class="legend-name">软件与订阅</span><span class="legend-pct figure">5.0%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="seg">
+    <div class="seg-item active">全部</div>
+    <div class="seg-item">收入</div>
+    <div class="seg-item">支出</div>
+  </div>
+
+  <div class="card">
+    <div class="bill">
+      <div class="bill-tile is-in">项</div>
+      <div class="bill-body">
+        <div class="bill-line"><span class="bill-cat">项目收款</span><span class="bill-amt is-in figure">+30,000.00</span></div>
+        <div class="bill-sub">企业官网改版 · 杭州云图科技有限公司</div>
+        <div class="bill-foot"><span class="bill-date figure">2026-10-18</span><span class="tag tag-gray">已结 15,000.00</span></div>
+        <div class="bill-remark">一期进度款</div>
+      </div>
+    </div>
+
+    <div class="bill">
+      <div class="bill-tile is-out">外</div>
+      <div class="bill-body">
+        <div class="bill-line"><span class="bill-cat">外包/人力</span><span class="bill-amt is-out figure">−6,000.00</span></div>
+        <div class="bill-sub">企业官网改版 · 自由插画师·小林</div>
+        <div class="bill-foot"><span class="bill-date figure">2026-10-10</span><span class="tag tag-gray">已结 3,000.00</span></div>
+      </div>
+    </div>
+
+    <div class="bill">
+      <div class="bill-tile is-out">云</div>
+      <div class="bill-body">
+        <div class="bill-line"><span class="bill-cat">云服务/服务器</span><span class="bill-amt is-out figure">−1,299.00</span></div>
+        <div class="bill-sub">企业官网改版 · 阿里云</div>
+        <div class="bill-foot"><span class="bill-date figure">2026-10-03</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item is-on"><img src="ui-assets/wallet-on.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item"><img src="ui-assets/user.png"><span>我的</span></div></div></div><div class="cap">记账</div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="summary">
+    <div class="row-between">
+      <span class="label-mono">项目总览</span>
+      <span class="summary-count">3 个在管</span>
+    </div>
+    <div class="summary-net"><span class="net-k">净利润</span><span class="net-v figure">¥100,203.00</span></div>
+    <div class="summary-pair">
+      <div class="pair-cell">
+        <div class="pair-cap"><div class="dot"></div><span>收入</span></div>
+        <span class="pair-v money-in figure">¥79,500.00</span>
+      </div>
+      <div class="money-divider"></div>
+      <div class="pair-cell">
+        <div class="pair-cap is-out"><div class="dot"></div><span>成本</span></div>
+        <span class="pair-v money-out figure">¥14,547.00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="proj">
+    <div class="proj-head">
+      <div class="proj-titles">
+        <div class="proj-name">企业官网改版</div>
+        <div class="proj-sub"><span>杭州云图科技有限公司</span><span class="proj-code">P2026-001</span></div>
+      </div>
+      <div class="status-pill is-on">进行中</div>
+    </div>
+
+    <div class="proj-meta"><span>预算 ¥80,000.00</span><span>时薪 ¥180/h</span></div>
+
+    <div class="bar-chart">
+      <div class="bar-row"><span class="bar-k">收</span><div class="bar-track"><div class="bar-fill is-in" style="width:100%"></div></div><span class="bar-amt is-in figure">54,000.00</span></div>
+      <div class="bar-row"><span class="bar-k">支</span><div class="bar-track"><div class="bar-fill is-out" style="width:23%"></div></div><span class="bar-amt is-out figure">12,499.00</span></div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><span class="m-k">收入</span><span class="m-v money-in figure">54,000.00</span></div>
+      <div class="metric"><span class="m-k">直接成本</span><span class="m-v money-out figure">12,499.00</span></div>
+      <div class="metric"><span class="m-k">毛利</span><span class="m-v figure">41,501.00</span></div>
+      <div class="metric"><span class="m-k">工时</span><span class="m-v figure">22.5<span class="m-u">h</span></span></div>
+      <div class="metric"><span class="m-k">人力成本</span><span class="m-v figure">4,050.00</span></div>
+      <div class="metric"><span class="m-k">净利润</span><span class="m-v money-in figure">37,451.00</span></div>
+    </div>
+
+    <div class="budget">
+      <div class="row-between budget-head"><span class="budget-k">预算使用 27.4%</span></div>
+      <div class="budget-track"><div class="budget-fill" style="width:27.4%"></div></div>
+    </div>
+
+    <div class="proj-foot"><span class="foot-rate">毛利率 76.9% · 净利率 69.4%</span><span class="foot-receivable">应收 15,000.00</span></div>
+
+    <div class="proj-ops"><span class="op">任务</span><span class="op">编辑</span><span class="op is-danger">删除</span></div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item is-on"><img src="ui-assets/folder-on.png"><span>项目</span></div><div class="tb-item"><img src="ui-assets/user.png"><span>我的</span></div></div></div><div class="cap">项目<span>含支出分类环形图</span></div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="task">
+    <div class="task-strip is-high"></div>
+    <div class="task-main">
+      <div class="task-head">
+        <span class="task-name">首页视觉稿设计</span>
+        <div class="task-status is-done">已完成</div>
+      </div>
+      <div class="task-meta">
+        <span class="prio is-high">高优先</span>
+        <span class="meta-k">预估 <span class="figure">16</span>h</span>
+        <span class="meta-k">实际 <span class="figure">14.5</span>h</span>
+      </div>
+      <div class="progress"><div class="track"><div class="fill is-done" style="width:100%"></div></div><span class="pct figure">100%</span></div>
+      <div class="task-remark">配色定稿，交付给前端切图</div>
+      <div class="task-ops"><span class="op">重开</span><span class="op">编辑</span><span class="op is-danger">删除</span></div>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-strip is-mid"></div>
+    <div class="task-main">
+      <div class="task-head">
+        <span class="task-name">响应式前端开发</span>
+        <div class="task-status is-doing">进行中</div>
+      </div>
+      <div class="task-meta">
+        <span class="prio is-mid">中优先</span>
+        <span class="meta-k">预估 <span class="figure">40</span>h</span>
+        <span class="meta-k">实际 <span class="figure">22</span>h</span>
+      </div>
+      <div class="progress"><div class="track"><div class="fill" style="width:60%"></div></div><span class="pct figure">60%</span></div>
+      <div class="task-ops"><span class="op">完成</span><span class="op">编辑</span><span class="op is-danger">删除</span></div>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-strip is-low"></div>
+    <div class="task-main">
+      <div class="task-head">
+        <span class="task-name">后台内容管理对接</span>
+        <div class="task-status is-todo">待处理</div>
+      </div>
+      <div class="task-meta">
+        <span class="prio">低优先</span>
+        <span class="meta-k">预估 <span class="figure">24</span>h</span>
+        <span class="meta-k">实际 <span class="figure">0</span>h</span>
+      </div>
+      <div class="progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="pct figure">0%</span></div>
+      <div class="task-ops"><span class="op">完成</span><span class="op">编辑</span><span class="op is-danger">删除</span></div>
+    </div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item is-on"><img src="ui-assets/folder-on.png"><span>项目</span></div><div class="tb-item"><img src="ui-assets/user.png"><span>我的</span></div></div></div><div class="cap">任务<span>从项目卡进入</span></div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="profile">
+    <div class="profile-main">
+      <div class="avatar-wrap">
+        <div class="avatar-inner">
+          <div class="avatar" style="background:linear-gradient(140deg,#cfd8cf,#8fa396)"></div>
+        </div>
+        <button class="avatar-hit" open-type="chooseAvatar"></button>
+        <div class="avatar-badge">改</div>
+      </div>
+      <div class="profile-info">
+        <div class="nick-row"><span class="nick-name">微信用户77493</span><span class="edit-icon">编辑</span></div>
+        <div class="profile-sub">2026-10-27 加入</div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="ps-cell"><span class="ps-num figure">38.3</span><span class="ps-label">累计工时</span></div>
+      <div class="ps-cell"><span class="ps-num figure">18</span><span class="ps-label">打卡次数</span></div>
+      <div class="ps-cell"><span class="ps-num figure">3</span><span class="ps-label">进行中项目</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>本月</span><span class="text-mute">38.3 小时</span></div>
+    <div class="month-row">
+      <div class="month-cell">
+        <div class="money-cap"><div class="dot"></div><span>收入</span></div>
+        <div class="month-num money-in figure">80,700.00</div>
+      </div>
+      <div class="money-divider"></div>
+      <div class="month-cell">
+        <div class="money-cap is-out"><div class="dot"></div><span>支出</span></div>
+        <div class="month-num money-out figure">14,975.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">账号</div>
+    <div class="list-item row-between"><span class="text-sub">身份类型</span><span class="tag tag-blue">微信独立账号</span></div>
+    <div class="list-item row-between"><span class="text-sub">账号状态</span><span class="tag tag-green">正常</span></div>
+    <div class="list-item row-between"><span class="text-sub">最近登录</span><span class="text-mute figure">2026-10-27 21:01</span></div>
+  </div>
+
+  <div class="card">
+    <div class="menu-item"><div class="glyph is-pine">导</div><span class="menu-text">数据导出</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph is-clay">销</div><span class="menu-text">账号注销</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph">退</div><span class="menu-text">退出登录</span><div class="arrow"></div></div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item is-on"><img src="ui-assets/user-on.png"><span>我的</span></div></div></div><div class="cap">我的</div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="profile">
+    <div class="profile-main">
+      <div class="avatar-wrap">
+        <div class="avatar-inner">
+          <div class="avatar-fallback">微</div>
+        </div>
+        <button class="avatar-hit" open-type="chooseAvatar"></button>
+        <div class="avatar-badge">改</div>
+      </div>
+      <div class="profile-info">
+        <div class="nick-row"><span class="nick-name">微信用户7749312456789</span><span class="edit-icon">编辑</span></div>
+        <div class="profile-sub">2026-10-27 加入</div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="ps-cell"><span class="ps-num figure">38.3</span><span class="ps-label">累计工时</span></div>
+      <div class="ps-cell"><span class="ps-num figure">18</span><span class="ps-label">打卡次数</span></div>
+      <div class="ps-cell"><span class="ps-num figure">3</span><span class="ps-label">进行中项目</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>本月</span><span class="text-mute">38.3 小时</span></div>
+    <div class="month-row">
+      <div class="month-cell">
+        <div class="money-cap"><div class="dot"></div><span>收入</span></div>
+        <div class="month-num money-in figure">80,700.00</div>
+      </div>
+      <div class="money-divider"></div>
+      <div class="month-cell">
+        <div class="money-cap is-out"><div class="dot"></div><span>支出</span></div>
+        <div class="month-num money-out figure">14,975.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">账号</div>
+    <div class="list-item row-between"><span class="text-sub">身份类型</span><span class="tag tag-blue">微信独立账号</span></div>
+    <div class="list-item row-between"><span class="text-sub">账号状态</span><span class="tag tag-green">正常</span></div>
+    <div class="list-item row-between"><span class="text-sub">最近登录</span><span class="text-mute figure">2026-10-27 21:01</span></div>
+  </div>
+
+  <div class="card">
+    <div class="menu-item"><div class="glyph is-pine">导</div><span class="menu-text">数据导出</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph is-clay">销</div><span class="menu-text">账号注销</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph">退</div><span class="menu-text">退出登录</span><div class="arrow"></div></div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item is-on"><img src="ui-assets/user-on.png"><span>我的</span></div></div></div><div class="cap">我的（未设头像）<span>昵称首字兜底 · 长昵称省略</span></div></div>
+<div class="frame"><div class="phone"><div class="screen">
+<div class="container">
+  <div class="profile">
+    <div class="profile-main">
+      <div class="avatar-wrap">
+        <div class="avatar-inner">
+          <div class="avatar" style="background:linear-gradient(140deg,#cfd8cf,#8fa396)"></div>
+        </div>
+        <button class="avatar-hit" open-type="chooseAvatar"></button>
+        <div class="avatar-badge">改</div>
+      </div>
+      <div class="profile-info">
+        <input class="nick-input" value="微信用户77493">
+        <div class="edit-actions"><div class="edit-btn is-save">保存</div><div class="edit-btn is-cancel">取消</div></div>
+      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="ps-cell"><span class="ps-num figure">38.3</span><span class="ps-label">累计工时</span></div>
+      <div class="ps-cell"><span class="ps-num figure">18</span><span class="ps-label">打卡次数</span></div>
+      <div class="ps-cell"><span class="ps-num figure">3</span><span class="ps-label">进行中项目</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span>本月</span><span class="text-mute">38.3 小时</span></div>
+    <div class="month-row">
+      <div class="month-cell">
+        <div class="money-cap"><div class="dot"></div><span>收入</span></div>
+        <div class="month-num money-in figure">80,700.00</div>
+      </div>
+      <div class="money-divider"></div>
+      <div class="month-cell">
+        <div class="money-cap is-out"><div class="dot"></div><span>支出</span></div>
+        <div class="month-num money-out figure">14,975.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">账号</div>
+    <div class="list-item row-between"><span class="text-sub">身份类型</span><span class="tag tag-blue">微信独立账号</span></div>
+    <div class="list-item row-between"><span class="text-sub">账号状态</span><span class="tag tag-green">正常</span></div>
+    <div class="list-item row-between"><span class="text-sub">最近登录</span><span class="text-mute figure">2026-10-27 21:01</span></div>
+  </div>
+
+  <div class="card">
+    <div class="menu-item"><div class="glyph is-pine">导</div><span class="menu-text">数据导出</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph is-clay">销</div><span class="menu-text">账号注销</span><div class="arrow"></div></div>
+    <div class="menu-item"><div class="glyph">退</div><span class="menu-text">退出登录</span><div class="arrow"></div></div>
+  </div>
+</div>
+</div><div class="tabbar"><div class="tb-item"><img src="ui-assets/home.png"><span>首页</span></div><div class="tb-item"><img src="ui-assets/time.png"><span>工时</span></div><div class="tb-item"><img src="ui-assets/wallet.png"><span>记账</span></div><div class="tb-item"><img src="ui-assets/folder.png"><span>项目</span></div><div class="tb-item is-on"><img src="ui-assets/user-on.png"><span>我的</span></div></div></div><div class="cap">我的（编辑昵称）<span>保存/取消为独立热区</span></div></div>
+</div>
+</body>
+</html>

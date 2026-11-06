@@ -1,0 +1,1 @@
+<canvas type="2d" id="lc" class="lc-canvas" style="width:100%;height:{{height}}px;"></canvas>

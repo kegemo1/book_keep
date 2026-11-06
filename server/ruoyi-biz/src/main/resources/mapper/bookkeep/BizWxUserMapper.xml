@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.biz.mapper.BizWxUserMapper">
+
+	<resultMap type="com.ruoyi.biz.domain.BizWxUser" id="BizWxUserResult">
+		<id     property="wxUserId"      column="wx_user_id"      />
+		<result property="appid"         column="appid"           />
+		<result property="openid"        column="openid"          />
+		<result property="unionid"       column="unionid"         />
+		<result property="nickName"      column="nick_name"       />
+		<result property="avatarUrl"     column="avatar_url"      />
+		<result property="phone"         column="phone"           />
+		<result property="deptId"        column="dept_id"         />
+		<result property="status"        column="status"          />
+		<result property="registerTime"  column="register_time"   />
+		<result property="lastLoginTime" column="last_login_time" />
+		<result property="cancelTime"    column="cancel_time"     />
+		<result property="delFlag"       column="del_flag"        />
+		<result property="createBy"      column="create_by"       />
+		<result property="createTime"    column="create_time"     />
+		<result property="updateBy"      column="update_by"       />
+		<result property="updateTime"    column="update_time"     />
+		<result property="remark"        column="remark"          />
+	</resultMap>
+
+	<sql id="selectWxUserVo">
+		select wx_user_id, appid, openid, unionid, nick_name, avatar_url, phone, dept_id,
+			status, register_time, last_login_time, cancel_time, del_flag, create_by, create_time,
+			update_by, update_time, remark
+		from biz_wx_user
+	</sql>
+
+	<!-- 默认只查正常档案；params.cancelled == '1' 时查已注销档案（管理端"注销用户"筛选） -->
+	<select id="selectWxUserList" parameterType="com.ruoyi.biz.domain.BizWxUser" resultMap="BizWxUserResult">
+		<include refid="selectWxUserVo"/>
+		<where>
+			<choose>
+				<when test="params.cancelled != null and params.cancelled == '1'"> del_flag = '2' </when>
+				<otherwise> del_flag = '0' </otherwise>
+			</choose>
+			<if test="nickName != null and nickName != ''"> AND nick_name like concat('%', #{nickName}, '%') </if>
+			<if test="status != null and status != ''"> AND status = #{status} </if>
+			<if test="unionid != null and unionid != ''"> AND unionid = #{unionid} </if>
+		</where>
+		order by wx_user_id desc
+	</select>
+
+	<select id="selectWxUserById" parameterType="java.lang.Long" resultMap="BizWxUserResult">
+		<include refid="selectWxUserVo"/>
+		where wx_user_id = #{wxUserId} and del_flag = '0'
+	</select>
+
+	<select id="selectWxUserByOpenid" resultMap="BizWxUserResult">
+		<include refid="selectWxUserVo"/>
+		where appid = #{appid} and openid = #{openid} and del_flag = '0' limit 1
+	</select>
+
+	<insert id="insertWxUser" parameterType="com.ruoyi.biz.domain.BizWxUser" useGeneratedKeys="true" keyProperty="wxUserId">
+		insert into biz_wx_user(
+			appid, openid,
+			<if test="unionid != null and unionid != ''">unionid,</if>
+			<if test="nickName != null">nick_name,</if>
+			<if test="avatarUrl != null">avatar_url,</if>
+			<if test="phone != null">phone,</if>
+			<if test="deptId != null">dept_id,</if>
+			<if test="status != null">status,</if>
+			<if test="registerTime != null">register_time,</if>
+			<if test="remark != null">remark,</if>
+			<if test="createBy != null">create_by,</if>
+			create_time
+		) values (
+			#{appid}, #{openid},
+			<if test="unionid != null and unionid != ''">#{unionid},</if>
+			<if test="nickName != null">#{nickName},</if>
+			<if test="avatarUrl != null">#{avatarUrl},</if>
+			<if test="phone != null">#{phone},</if>
+			<if test="deptId != null">#{deptId},</if>
+			<if test="status != null">#{status},</if>
+			<if test="registerTime != null">#{registerTime},</if>
+			<if test="remark != null">#{remark},</if>
+			<if test="createBy != null">#{createBy},</if>
+			sysdate()
+		)
+	</insert>
+
+	<update id="updateWxUser" parameterType="com.ruoyi.biz.domain.BizWxUser">
+		update biz_wx_user
+		<set>
+			<if test="nickName != null">nick_name = #{nickName},</if>
+			<if test="avatarUrl != null">avatar_url = #{avatarUrl},</if>
+			<if test="phone != null">phone = #{phone},</if>
+			<if test="status != null">status = #{status},</if>
+			<if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where wx_user_id = #{wxUserId} and del_flag = '0'
+	</update>
+
+	<update id="updateLoginInfo">
+		update biz_wx_user set last_login_time = #{lastLoginTime}, update_time = sysdate()
+		where wx_user_id = #{wxUserId} and del_flag = '0'
+	</update>
+
+	<!-- 账号注销：逻辑删除 + 身份字段置空 + 档案脱敏（业务数据的 user_id 保留，30 天后物理清理档案） -->
+	<update id="cancelWxUser">
+		update biz_wx_user
+		set del_flag = '2', openid = null, unionid = null,
+			nick_name = '已注销用户', avatar_url = '', phone = '',
+			cancel_time = #{cancelTime}, update_time = sysdate(),
+			remark = '用户自主注销'
+		where wx_user_id = #{wxUserId} and del_flag = '0'
+	</update>
+
+	<!-- 物理删除注销超过期限的档案（定时任务调用，deadline = 当前时间 - 30 天） -->
+	<delete id="deleteCancelledBefore">
+		delete from biz_wx_user where del_flag = '2' and cancel_time &lt; #{deadline}
+	</delete>
+
+    <delete id="deleteWxUserById" parameterType="Long">
+        delete from biz_wx_user where wx_user_id = #{wxUserId}
+    </delete>
+
+</mapper>

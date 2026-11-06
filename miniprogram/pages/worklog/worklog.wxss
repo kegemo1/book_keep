@@ -1,0 +1,270 @@
+/* 今日总览 */
+.today-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: 28rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+
+.today-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.today-num {
+  margin-top: 6rpx;
+  font-size: 68rpx;
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -1.6rpx;
+}
+
+.today-unit {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 6rpx;
+}
+
+.today-meta {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.6rpx;
+}
+
+.today-action {
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background: var(--sage);
+  color: var(--pine);
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.today-action:active {
+  opacity: 0.85;
+}
+
+.today-plus {
+  margin-right: 6rpx;
+  font-size: 28rpx;
+}
+
+/* 计时器 Hero 与首页保持一致 */
+.timer-hero {
+  position: relative;
+  border-radius: 34rpx;
+  padding: 30rpx 30rpx 26rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  background: radial-gradient(130% 120% at 86% -10%, #3f5d4d 0%, #2c4036 45%, #1e2e27 100%);
+  box-shadow: 0 26rpx 54rpx -30rpx rgba(30, 46, 39, 0.95);
+}
+
+.timer-hero::after {
+  content: "";
+  position: absolute;
+  right: -80rpx;
+  top: -120rpx;
+  width: 340rpx;
+  height: 340rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(150, 196, 170, 0.22) 0%, rgba(150, 196, 170, 0) 68%);
+  pointer-events: none;
+}
+
+.count-text {
+  font-size: 23rpx;
+  font-weight: 400;
+  color: var(--ink-3);
+  letter-spacing: 0.6rpx;
+}
+
+/* ---------------- 记录行：日期栏 + 内容 ---------------- */
+.rec {
+  display: flex;
+  padding: 26rpx 0;
+  border-bottom: 2rpx solid var(--line);
+}
+
+.rec:last-child {
+  border-bottom: none;
+  padding-bottom: 4rpx;
+}
+
+.rec-date {
+  width: 92rpx;
+  flex-shrink: 0;
+  padding-top: 2rpx;
+}
+
+.rec-day {
+  font-size: 23rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.4rpx;
+}
+
+.rec-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rec-proj {
+  flex: 1;
+  min-width: 0;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rec-hours {
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--pine);
+  letter-spacing: -0.4rpx;
+}
+
+.rec-hours-unit {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 2rpx;
+}
+
+.rec-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+
+.rec-time {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.4rpx;
+}
+
+/* 备注：左侧一条细线，像页边批注 */
+.rec-content {
+  margin-top: 12rpx;
+  padding-left: 16rpx;
+  border-left: 3rpx solid var(--line);
+  font-size: 23rpx;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+
+.rec-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+
+.rec-meta {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 来源：发丝线描边，比底色块轻一档，只用来扫视 */
+.rec-src {
+  flex-shrink: 0;
+  height: 34rpx;
+  line-height: 34rpx;
+  padding: 0 12rpx;
+  border: 2rpx solid var(--line);
+  border-radius: 999rpx;
+  font-size: 19rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.4rpx;
+}
+
+/* 状态：小圆点 + 文字。账本里颜色只承担语义，不做装饰性色块 */
+.rec-state {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  font-size: 21rpx;
+  color: var(--ink-3);
+  letter-spacing: 0.2rpx;
+}
+
+.rec-state-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  margin-right: 9rpx;
+  background: currentColor;
+}
+
+.rec-state.is-billable {
+  color: var(--in);
+}
+
+.rec-state.is-free {
+  color: var(--ink-3);
+}
+
+.rec-state.is-running {
+  color: var(--gold);
+}
+
+.rec-state.is-void {
+  color: var(--out);
+}
+
+/* 作废的记录整体褪色，只留状态那一处陶土色，扫一眼就知道这条不算数 */
+.rec.is-void .rec-day,
+.rec.is-void .rec-proj,
+.rec.is-void .rec-hours,
+.rec.is-void .rec-sub,
+.rec.is-void .rec-time,
+.rec.is-void .rec-content {
+  opacity: 0.48;
+}
+
+.rec-op {
+  flex-shrink: 0;
+  font-size: 23rpx;
+  color: var(--ink-3);
+  padding: 6rpx 0 6rpx 20rpx;
+}
+
+.rec-op.is-in {
+  color: var(--pine);
+  font-weight: 600;
+}
+
+.rec-note {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: var(--gold);
+}
+
+/* 占位符 */
+.ph {
+  color: #bcb9b1;
+}

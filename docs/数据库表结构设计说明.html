@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bookkeepingWhiz 数据库表结构设计说明（基于 RuoYi 3.9.2）</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --panel:#ffffff; --border:#e3e8ef; --border-strong:#cdd5e0;
+    --text:#1f2937; --text-sub:#5b6675; --text-mute:#8b95a3;
+    --brand:#2563eb; --brand-soft:#eff4ff;
+    --ok:#0f9d58; --ok-soft:#e9f7ef;
+    --warn:#c77700; --warn-soft:#fff6e5;
+    --danger:#d93838; --danger-soft:#fdeeee;
+    --purple:#6d3fd4; --purple-soft:#f3eeff;
+    --teal:#0d7f7a; --teal-soft:#e6f6f5;
+    --code:#f3f5f9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0 0 64px;
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px; line-height:1.7;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+  header.hero{
+    background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%);
+    color:#fff; padding:38px 0 32px; margin-bottom:26px;
+  }
+  header.hero .wrap{padding-left:28px;}
+  header.hero h1{margin:0 0 10px; font-size:26px; letter-spacing:.3px;}
+  header.hero p{margin:0; color:#dbe7ff; font-size:13.5px;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px;}
+  .meta span{
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25);
+    padding:3px 11px; border-radius:999px; font-size:12.5px;
+  }
+  h2{
+    font-size:19px; margin:38px 0 14px; padding-left:12px;
+    border-left:4px solid var(--brand); line-height:1.3;
+  }
+  h3{font-size:15.5px; margin:24px 0 10px; color:#111827;}
+  h4{font-size:13.5px; margin:16px 0 8px; color:var(--text-sub); font-weight:600;}
+  p{margin:8px 0;}
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:18px 20px; margin:14px 0; box-shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  .card h3{margin-top:0;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; background:#fff;}
+  th,td{border:1px solid var(--border); padding:7px 10px; text-align:left; vertical-align:top;}
+  thead th{background:#f0f4f9; font-weight:600; color:#374151; white-space:nowrap;}
+  tbody tr:nth-child(even){background:#fafbfd;}
+  td code,p code,li code{background:var(--code); padding:1px 5px; border-radius:4px; font-size:12.5px;
+    font-family:"JetBrains Mono",Consolas,Monaco,monospace; color:#b02a4b;}
+  pre{
+    background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px;
+    overflow-x:auto; font-size:12.5px; line-height:1.6;
+    font-family:"JetBrains Mono",Consolas,Monaco,monospace;
+  }
+  .badge{display:inline-block; padding:1px 6px; border-radius:4px; font-size:11px; font-weight:600;
+    border:1px solid transparent; white-space:nowrap;}
+  .b-pk{background:var(--warn-soft); color:var(--warn); border-color:#f0d59a;}
+  .b-fk{background:var(--brand-soft); color:var(--brand); border-color:#c3d6fb;}
+  .b-uk{background:var(--purple-soft); color:var(--purple); border-color:#d6c6f7;}
+  .b-notnull{background:var(--danger-soft); color:var(--danger); border-color:#f2bcbc;}
+  .tag{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; margin-right:6px;}
+  .t-core{background:var(--danger-soft); color:var(--danger);}
+  .t-opt{background:#eef1f5; color:var(--text-sub);}
+  .t-time{background:var(--teal-soft); color:var(--teal);}
+  .t-money{background:var(--ok-soft); color:var(--ok);}
+  ul{margin:8px 0; padding-left:22px;}
+  li{margin:4px 0;}
+  .note{
+    border-left:3px solid var(--brand); background:var(--brand-soft);
+    padding:10px 14px; border-radius:0 8px 8px 0; margin:12px 0; font-size:13px;
+  }
+  .warnbox{border-left-color:var(--warn); background:var(--warn-soft);}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:860px){.grid2{grid-template-columns:1fr;}}
+  .figwrap{background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px; margin:16px 0; overflow-x:auto;}
+  .figwrap figcaption{font-size:12.5px; color:var(--text-mute); text-align:center; margin-top:8px;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--text-sub); margin-top:6px;}
+  .legend i{display:inline-block; width:22px; height:0; border-top:2px solid var(--brand); vertical-align:middle; margin-right:6px;}
+  .kpi{display:flex; gap:14px; flex-wrap:wrap; margin:16px 0;}
+  .kpi div{flex:1 1 150px; background:#fff; border:1px solid var(--border); border-radius:10px; padding:12px 16px;}
+  .kpi b{display:block; font-size:22px; color:var(--brand); line-height:1.2;}
+  .kpi small{color:var(--text-mute); font-size:12px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>bookkeepingWhiz · 数据库表结构设计说明</h1>
+    <p>个人工时 / 任务打卡 + 项目收支记账系统 —— 在 RuoYi 自带系统表之上扩展业务库</p>
+    <div class="meta">
+      <span>基础框架：RuoYi 3.9.2（前后端分离）</span>
+      <span>Spring Boot 4.1.0 / Java 17 / MyBatis</span>
+      <span>MySQL 8.x · 库名 book_keep</span>
+      <span>字符集 utf8mb4</span>
+      <span>建表脚本：sql/book_keep_biz.sql</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2>一、设计目标与总体思路</h2>
+  <div class="card">
+    <p>在完全<strong>不修改 RuoYi 自带系统表</strong>的前提下，新增 <code>biz_</code> 前缀业务表，通过 <code>user_id</code> / <code>dept_id</code> / <code>create_by</code> 等字段与 <code>sys_user</code>、<code>sys_dept</code>、<code>sys_dict_*</code>、<code>sys_menu</code> 建立关联，从而直接复用 RuoYi 的登录鉴权、角色权限、数据权限（部门过滤）、字典与代码生成能力。</p>
+    <div class="kpi">
+      <div><b>7</b><small>业务表（6 必备 + 1 小程序可选）</small></div>
+      <div><b>3 级</b><small>项目 → 任务 → 打卡 的归集层次</small></div>
+      <div><b>2 类</b><small>打卡方式：计时器 / 手动补录</small></div>
+      <div><b>8 组</b><small>字典类型（复用 sys_dict_data）</small></div>
+    </div>
+    <h3>三条主线</h3>
+    <ul>
+      <li><strong>工时打卡</strong>：<code>biz_project</code> → <code>biz_task</code> → <code>biz_work_log</code>。一条打卡记录 = 某用户在某项目/任务上的一段时长；计时器与手动补录共用一张表，靠 <code>log_type</code> 区分。</li>
+      <li><strong>收支记账</strong>：<code>biz_finance_category</code>（类别树）+ <code>biz_finance_record</code>（流水）。金额恒为正数，方向由 <code>record_type</code>（0收入 / 1支出）决定，<code>project_id</code> 让每笔收支落到项目上。</li>
+      <li><strong>数据关联</strong>：所有业务表都带 <code>user_id</code> 与冗余 <code>dept_id</code>，既能按人统计，也能直接接入 RuoYi 的部门数据权限。</li>
+    </ul>
+    <div class="note">
+      <strong>与 RuoYi 约定保持一致：</strong>继承 <code>BaseEntity</code>（create_by / create_time / update_by / update_time / remark）；逻辑删除统一 <code>del_flag CHAR(1)</code>（0存在 2删除）；<code>create_by</code> 存 <code>sys_user.user_name</code> 字符串而非用户 ID；<strong>不建物理外键</strong>（RuoYi 官方表同样如此），关联由应用层 + 索引保证。
+    </div>
+  </div>
+
+  <h2>二、表清单总览</h2>
+  <table>
+    <thead>
+      <tr><th style="width:190px">表名</th><th style="width:110px">中文名</th><th style="width:80px">定位</th><th>用途说明</th><th style="width:230px">主要关联</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>biz_project</code></td><td>项目表</td><td><span class="tag t-core">核心</span></td>
+        <td>工时与记账的归集单元，一个项目 = 一个可核算收入/成本的对象</td>
+        <td>dept_id→sys_dept<br>owner_id→sys_user</td>
+      </tr>
+      <tr>
+        <td><code>biz_task</code></td><td>任务表</td><td><span class="tag t-core">核心</span></td>
+        <td>项目下的可执行任务，支持父子任务；打卡可精确到任务</td>
+        <td>project_id→biz_project<br>assignee_id→sys_user</td>
+      </tr>
+      <tr>
+        <td><code>biz_work_log</code></td><td>工时打卡记录表</td><td><span class="tag t-time">工时</span></td>
+        <td>计时器式开始/结束打点 + 手动补录，记录项目/任务/起止时间/时长</td>
+        <td>user_id→sys_user<br>project_id / task_id</td>
+      </tr>
+      <tr>
+        <td><code>biz_finance_category</code></td><td>收支类别表</td><td><span class="tag t-money">记账</span></td>
+        <td>收入与支出的二级分类（硬件设备、云服务、外包、项目收款……）</td>
+        <td>parent_id 自关联</td>
+      </tr>
+      <tr>
+        <td><code>biz_finance_record</code></td><td>收支流水表</td><td><span class="tag t-money">记账</span></td>
+        <td>记录每个项目的收入（收款）与成本投入，区分收入/支出类型</td>
+        <td>user_id→sys_user<br>project_id / category_id</td>
+      </tr>
+      <tr>
+        <td><code>biz_project_member</code></td><td>项目成员表</td><td><span class="tag t-opt">可选</span></td>
+        <td>多人协作场景：谁可对项目打卡、成员在该项目下的时薪</td>
+        <td>project_id + user_id（联合唯一）</td>
+      </tr>
+      <tr>
+        <td><code>biz_user_wx</code></td><td>微信绑定表</td><td><span class="tag t-opt">可选</span></td>
+        <td>小程序登录用：openid / unionid 与 sys_user 的绑定，不改动原生表</td>
+        <td>user_id→sys_user</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>三、实体关系（ER）图</h2>
+  <figure class="figwrap">
+    <svg viewBox="0 0 880 580" width="100%" role="img" aria-label="工时域 ER 图">
+      <defs>
+        <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+        </marker>
+        <style>
+          .bx{fill:#ffffff;stroke-width:1.6;rx:9;}
+          .ttl{font:600 13.5px -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;}
+          .fld{font:12px "JetBrains Mono",Consolas,monospace;}
+          .ln{fill:none;stroke:#2563eb;stroke-width:1.6;marker-end:url(#arw);}
+          .lb{font:11.5px -apple-system,"Microsoft YaHei",sans-serif;fill:#5b6675;}
+        </style>
+      </defs>
+      <text x="20" y="22" font="600 14px sans-serif" fill="#1f2937" style="font:600 14px -apple-system,'Microsoft YaHei',sans-serif">图 1 · 工时 / 打卡域</text>
+
+      <!-- sys_user -->
+      <rect x="40" y="40" width="200" height="72" class="bx" stroke="#0d7f7a"/>
+      <text x="54" y="63" class="ttl" fill="#0d7f7a">sys_user　（RuoYi 自带）</text>
+      <text x="54" y="83" class="fld" fill="#5b6675">user_id  PK</text>
+      <text x="54" y="101" class="fld" fill="#8b95a3">user_name / nick_name</text>
+
+      <!-- sys_dept -->
+      <rect x="40" y="170" width="200" height="72" class="bx" stroke="#0d7f7a"/>
+      <text x="54" y="193" class="ttl" fill="#0d7f7a">sys_dept　（RuoYi 自带）</text>
+      <text x="54" y="213" class="fld" fill="#5b6675">dept_id  PK</text>
+      <text x="54" y="231" class="fld" fill="#8b95a3">ancestors / dept_name</text>
+
+      <!-- biz_project -->
+      <rect x="340" y="60" width="220" height="80" class="bx" stroke="#2563eb"/>
+      <text x="354" y="83" class="ttl" fill="#2563eb">biz_project　项目</text>
+      <text x="354" y="103" class="fld" fill="#5b6675">project_id PK</text>
+      <text x="354" y="121" class="fld" fill="#8b95a3">dept_id / owner_id / status</text>
+
+      <!-- biz_task -->
+      <rect x="340" y="230" width="220" height="80" class="bx" stroke="#2563eb"/>
+      <text x="354" y="253" class="ttl" fill="#2563eb">biz_task　任务</text>
+      <text x="354" y="273" class="fld" fill="#5b6675">task_id PK</text>
+      <text x="354" y="291" class="fld" fill="#8b95a3">project_id / parent_id / assignee_id</text>
+
+      <!-- biz_work_log -->
+      <rect x="340" y="400" width="230" height="112" class="bx" stroke="#0d7f7a"/>
+      <text x="354" y="423" class="ttl" fill="#0d7f7a">biz_work_log　工时打卡</text>
+      <text x="354" y="443" class="fld" fill="#5b6675">log_id PK</text>
+      <text x="354" y="461" class="fld" fill="#8b95a3">user_id / project_id / task_id</text>
+      <text x="354" y="479" class="fld" fill="#8b95a3">log_date / start_time / end_time</text>
+      <text x="354" y="497" class="fld" fill="#8b95a3">duration / log_type / log_status</text>
+
+      <!-- biz_project_member -->
+      <rect x="650" y="60" width="210" height="90" class="bx" stroke="#6d3fd4"/>
+      <text x="664" y="83" class="ttl" fill="#6d3fd4">biz_project_member</text>
+      <text x="664" y="103" class="fld" fill="#8b95a3">（可选）项目成员</text>
+      <text x="664" y="121" class="fld" fill="#5b6675">project_id + user_id  UK</text>
+      <text x="664" y="139" class="fld" fill="#8b95a3">role_type / hour_rate</text>
+
+      <!-- edges -->
+      <path class="ln" d="M240,76 L340,88"/>
+      <text x="244" y="70" class="lb">owner_id</text>
+
+      <path class="ln" d="M240,206 L282,206 L282,124 L340,124"/>
+      <text x="212" y="222" class="lb">dept_id（数据权限）</text>
+
+      <path class="ln" d="M40,76 L18,76 L18,470 L340,470"/>
+      <text x="26" y="462" class="lb">user_id</text>
+
+      <path class="ln" d="M450,140 L450,230"/>
+      <text x="458" y="190" class="lb">project_id</text>
+
+      <path class="ln" d="M450,310 L450,400"/>
+      <text x="458" y="360" class="lb">task_id</text>
+
+      <path class="ln" d="M340,104 L300,104 L300,432 L340,432"/>
+      <text x="212" y="356" class="lb">project_id</text>
+
+      <path class="ln" d="M560,92 L650,92"/>
+      <text x="566" y="86" class="lb">project_id</text>
+    </svg>
+    <figcaption>图 1：工时域 —— 用户/部门来自 RuoYi，项目与任务是归集维度，打卡记录同时挂到用户、项目、任务三个锚点上</figcaption>
+  </figure>
+
+  <figure class="figwrap">
+    <svg viewBox="0 0 880 410" width="100%" role="img" aria-label="收支域 ER 图">
+      <text x="20" y="22" style="font:600 14px -apple-system,'Microsoft YaHei',sans-serif" fill="#1f2937">图 2 · 收支记账域</text>
+
+      <rect x="40" y="60" width="200" height="72" class="bx" stroke="#0d7f7a"/>
+      <text x="54" y="83" class="ttl" fill="#0d7f7a">sys_user　（RuoYi 自带）</text>
+      <text x="54" y="103" class="fld" fill="#5b6675">user_id  PK</text>
+      <text x="54" y="121" class="fld" fill="#8b95a3">user_name / dept_id</text>
+
+      <rect x="340" y="60" width="220" height="80" class="bx" stroke="#2563eb"/>
+      <text x="354" y="83" class="ttl" fill="#2563eb">biz_project　项目</text>
+      <text x="354" y="103" class="fld" fill="#5b6675">project_id PK</text>
+      <text x="354" y="121" class="fld" fill="#8b95a3">project_code / status</text>
+
+      <rect x="640" y="40" width="210" height="90" class="bx" stroke="#0f9d58"/>
+      <text x="654" y="63" class="ttl" fill="#0f9d58">biz_finance_category</text>
+      <text x="654" y="83" class="fld" fill="#8b95a3">（收支类别，树形）</text>
+      <text x="654" y="101" class="fld" fill="#5b6675">category_id PK</text>
+      <text x="654" y="119" class="fld" fill="#8b95a3">parent_id / category_type</text>
+
+      <rect x="340" y="250" width="250" height="112" class="bx" stroke="#0f9d58"/>
+      <text x="354" y="273" class="ttl" fill="#0f9d58">biz_finance_record　收支流水</text>
+      <text x="354" y="293" class="fld" fill="#5b6675">record_id PK　record_no UK</text>
+      <text x="354" y="311" class="fld" fill="#8b95a3">user_id / project_id / category_id</text>
+      <text x="354" y="329" class="fld" fill="#8b95a3">record_type / amount / record_date</text>
+      <text x="354" y="347" class="fld" fill="#8b95a3">pay_method / settle_status</text>
+
+      <path class="ln" d="M40,96 L18,96 L18,300 L340,300"/>
+      <text x="26" y="292" class="lb">user_id</text>
+
+      <path class="ln" d="M450,140 L450,250"/>
+      <text x="458" y="198" class="lb">project_id</text>
+
+      <path class="ln" d="M745,130 L745,196 L590,196 L590,250"/>
+      <text x="600" y="190" class="lb">category_id</text>
+    </svg>
+    <figcaption>图 2：收支域 —— 一笔流水 = 记账人 + 项目 + 类别 + 方向（收入/支出）+ 金额 + 日期</figcaption>
+  </figure>
+
+  <h2>四、逐表字段明细</h2>
+
+  <!-- ================= biz_project ================= -->
+  <div class="card">
+    <h3>4.1 biz_project　项目表</h3>
+    <p><strong>用途：</strong>工时与记账的最小归集单元。一个项目可以同时承载「收到的钱」和「花掉的钱」，以及「投入的工时」，是所有统计报表的主维度。</p>
+    <table>
+      <thead><tr><th style="width:170px">字段名</th><th style="width:130px">类型</th><th style="width:70px">允许空</th><th style="width:90px">默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>project_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT(20) AUTO_INCREMENT</td><td>否</td><td>—</td><td>项目主键，自增起始 100</td></tr>
+        <tr><td><code>project_code</code> <span class="badge b-uk">UK</span></td><td>VARCHAR(64)</td><td>否</td><td>—</td><td>项目编号，业务唯一，如 <code>PRJ-2026-001</code></td></tr>
+        <tr><td><code>project_name</code></td><td>VARCHAR(100)</td><td>否</td><td>—</td><td>项目名称</td></tr>
+        <tr><td><code>dept_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>归属部门 → <code>sys_dept.dept_id</code>，用于数据权限</td></tr>
+        <tr><td><code>owner_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>项目负责人 → <code>sys_user.user_id</code></td></tr>
+        <tr><td><code>project_type</code></td><td>VARCHAR(20)</td><td>是</td><td>'1'</td><td>项目类型，字典 <code>biz_project_type</code>（自研/外包/内部）</td></tr>
+        <tr><td><code>customer_name</code></td><td>VARCHAR(100)</td><td>是</td><td>''</td><td>客户 / 甲方名称</td></tr>
+        <tr><td><code>status</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>项目状态，字典 <code>biz_project_status</code>（0进行中 1已完成 2已暂停 3已归档）</td></tr>
+        <tr><td><code>start_date</code></td><td>DATE</td><td>是</td><td>NULL</td><td>开始日期</td></tr>
+        <tr><td><code>plan_end_date</code></td><td>DATE</td><td>是</td><td>NULL</td><td>计划交付日期</td></tr>
+        <tr><td><code>end_date</code></td><td>DATE</td><td>是</td><td>NULL</td><td>实际结项日期</td></tr>
+        <tr><td><code>budget_amount</code></td><td>DECIMAL(12,2)</td><td>是</td><td>0.00</td><td>预算金额（元）</td></tr>
+        <tr><td><code>hour_rate</code></td><td>DECIMAL(10,2)</td><td>是</td><td>0.00</td><td>默认时薪（元/小时），工时折算人力成本的兜底单价</td></tr>
+        <tr><td><code>order_num</code></td><td>INT(4)</td><td>是</td><td>0</td><td>显示顺序</td></tr>
+        <tr><td><code>del_flag</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>删除标志（0存在 2删除）</td></tr>
+        <tr><td><code>create_by / create_time / update_by / update_time / remark</code></td><td>VARCHAR(64) ×2 / DATETIME ×2 / VARCHAR(500)</td><td>是</td><td>—</td><td>继承自 RuoYi <code>BaseEntity</code>，由框架自动填充</td></tr>
+      </tbody>
+    </table>
+    <h4>索引</h4>
+    <ul>
+      <li><span class="badge b-uk">UK</span> <code>uk_project_code(project_code)</code> —— 项目编号唯一，防重复建档</li>
+      <li><span class="badge b-fk">FK</span> <code>idx_project_owner(owner_id)</code>、<code>idx_project_dept(dept_id, status)</code> —— 支撑「我负责的项目」「本部门项目」查询与数据权限拼接</li>
+      <li><code>idx_project_status(status, project_name)</code> —— 列表页按状态过滤 + 名称排序</li>
+    </ul>
+  </div>
+
+  <!-- ================= biz_task ================= -->
+  <div class="card">
+    <h3>4.2 biz_task　任务表</h3>
+    <p><strong>用途：</strong>项目下的可执行任务，支持父子任务（<code>parent_id</code> + <code>ancestors</code> 模式，与 RuoYi <code>sys_dept</code> 树结构同构）。打卡记录可精确关联到任务，实现「项目工时 → 任务工时」的下钻。</p>
+    <table>
+      <thead><tr><th style="width:170px">字段名</th><th style="width:130px">类型</th><th style="width:70px">允许空</th><th style="width:90px">默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>task_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT(20) AUTO_INCREMENT</td><td>否</td><td>—</td><td>任务主键</td></tr>
+        <tr><td><code>project_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>否</td><td>—</td><td>所属项目 → <code>biz_project.project_id</code></td></tr>
+        <tr><td><code>parent_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>0</td><td>父任务 → 本表 <code>task_id</code>，0 表示顶级任务</td></tr>
+        <tr><td><code>ancestors</code></td><td>VARCHAR(500)</td><td>是</td><td>''</td><td>祖级列表（如 <code>0,100,105</code>），便于按子树统计</td></tr>
+        <tr><td><code>task_name</code></td><td>VARCHAR(100)</td><td>否</td><td>—</td><td>任务名称</td></tr>
+        <tr><td><code>assignee_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>执行人 → <code>sys_user.user_id</code></td></tr>
+        <tr><td><code>priority</code></td><td>CHAR(1)</td><td>是</td><td>'2'</td><td>优先级，字典 <code>biz_task_priority</code>（0高 1中 2低）</td></tr>
+        <tr><td><code>status</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>字典 <code>biz_task_status</code>（0待处理 1进行中 2已完成 3已取消）</td></tr>
+        <tr><td><code>plan_start_time</code> / <code>plan_end_time</code></td><td>DATETIME ×2</td><td>是</td><td>NULL</td><td>计划起止时间</td></tr>
+        <tr><td><code>estimate_hours</code></td><td>DECIMAL(8,2)</td><td>是</td><td>0.00</td><td>预估工时（小时）</td></tr>
+        <tr><td><code>actual_hours</code></td><td>DECIMAL(8,2)</td><td>是</td><td>0.00</td><td>实际工时（小时），由 <code>biz_work_log</code> 汇总回写（冗余字段，避免列表页每行算 SUM）</td></tr>
+        <tr><td><code>progress</code></td><td>INT(3)</td><td>是</td><td>0</td><td>进度百分比 0–100</td></tr>
+        <tr><td><code>order_num</code> / <code>del_flag</code> / <code>BaseEntity 5 字段</code></td><td>—</td><td>是</td><td>—</td><td>同项目表</td></tr>
+      </tbody>
+    </table>
+    <h4>索引</h4>
+    <ul>
+      <li><code>idx_task_project(project_id, status)</code> —— 项目下任务列表（最高频查询）</li>
+      <li><code>idx_task_assignee(assignee_id, status)</code> —— 「我的待办」</li>
+      <li><code>idx_task_parent(parent_id)</code> —— 子任务加载</li>
+    </ul>
+  </div>
+
+  <!-- ================= biz_work_log ================= -->
+  <div class="card">
+    <h3>4.3 biz_work_log　工时打卡记录表 <span class="tag t-time">核心表</span></h3>
+    <p><strong>用途：</strong>同一张表承载两种录入方式，避免统计时 UNION 两张表：</p>
+    <ul>
+      <li><strong>计时器</strong>（<code>log_type='0'</code>）：点「开始」写一条 <code>log_status='0'</code> 的记录（只有 start_time）；点「结束」回填 <code>end_time</code>、<code>duration</code>，置 <code>log_status='1'</code>。</li>
+      <li><strong>手动补录</strong>（<code>log_type='1'</code>）：直接写一条 <code>log_status='1'</code>，<code>start_time/end_time</code> 可为空，<code>duration</code> 必填（例如「今天花 2 小时在 A 项目」→ duration = 7200）。</li>
+    </ul>
+    <table>
+      <thead><tr><th style="width:170px">字段名</th><th style="width:130px">类型</th><th style="width:70px">允许空</th><th style="width:90px">默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>log_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT(20) AUTO_INCREMENT</td><td>否</td><td>—</td><td>打卡记录主键</td></tr>
+        <tr><td><code>user_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td><strong>否</strong></td><td>—</td><td>记录人 → <code>sys_user.user_id</code>；小程序端从登录态取 <code>SecurityUtils.getUserId()</code></td></tr>
+        <tr><td><code>dept_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>冗余部门 ID，供 <code>@DataScope(deptAlias="w")</code> 直接过滤，避免 JOIN sys_user</td></tr>
+        <tr><td><code>project_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>项目 → <code>biz_project.project_id</code>（NULL = 内部事务/未归类工时）</td></tr>
+        <tr><td><code>task_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>任务 → <code>biz_task.task_id</code></td></tr>
+        <tr><td><code>log_date</code></td><td>DATE</td><td><strong>否</strong></td><td>—</td><td><strong>归属日期</strong>（业务日期）。跨零点打卡时按业务规则归属，所有按天/按月统计都走它而不是 start_time</td></tr>
+        <tr><td><code>start_time</code></td><td>DATETIME</td><td>是</td><td>NULL</td><td>开始时间：计时器必填；手动补录可空</td></tr>
+        <tr><td><code>end_time</code></td><td>DATETIME</td><td>是</td><td>NULL</td><td>结束时间：进行中为空</td></tr>
+        <tr><td><code>duration</code></td><td>INT(11)</td><td><strong>否</strong></td><td>0</td><td>时长（<strong>秒</strong>）。计时器结束时 = end_time − start_time；手动补录直接填。展示层除 3600 得小时</td></tr>
+        <tr><td><code>log_type</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>录入方式，字典 <code>biz_work_log_type</code>（0计时器 1手动补录）</td></tr>
+        <tr><td><code>log_status</code></td><td>CHAR(1)</td><td>是</td><td>'1'</td><td>状态（0进行中 1已完成 2已作废）</td></tr>
+        <tr><td><code>billable</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>是否计费工时（0计费 1不计费），影响结算工时与收入核算</td></tr>
+        <tr><td><code>content</code></td><td>VARCHAR(500)</td><td>是</td><td>''</td><td>工作内容描述</td></tr>
+        <tr><td><code>source</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>来源（0 PC 端 1 微信小程序），用于区分入口与埋点</td></tr>
+        <tr><td><code>running_user</code> <span class="badge b-uk">UK</span></td><td>VARCHAR(32) GENERATED ALWAYS AS (...) VIRTUAL</td><td>是</td><td>—</td><td><strong>生成列</strong>：<code>IF(log_status='0', CAST(user_id AS CHAR), NULL)</code>，配合唯一索引在数据库层兜底「一人同时只有一个进行中计时器」</td></tr>
+        <tr><td><code>del_flag</code> / <code>BaseEntity 5 字段</code></td><td>—</td><td>是</td><td>'0'</td><td>同项目表</td></tr>
+      </tbody>
+    </table>
+    <h4>索引</h4>
+    <ul>
+      <li><span class="badge b-uk">UK</span> <code>uk_running_user(running_user)</code> —— 计时器并发唯一性（Redis 做第一道锁，这里是最后一道防线）</li>
+      <li><code>idx_wl_user_date(user_id, log_date)</code> —— 「我的工时」按日期区间查询，覆盖度最高的索引</li>
+      <li><code>idx_wl_project_date(project_id, log_date)</code> —— 项目工时统计（按项目+时间范围）</li>
+      <li><code>idx_wl_task(task_id)</code>、<code>idx_wl_status(log_status, user_id)</code>、<code>idx_wl_dept(dept_id)</code></li>
+    </ul>
+    <div class="note warnbox">
+      <strong>状态机约定：</strong><code>0进行中 → 1已完成</code>（正常流程）；<code>0/1 → 2已作废</code>（作废保留审计痕迹，不物理删除）。作废与逻辑删除的区别：<strong>作废是业务行为</strong>（工时填错了），<strong>del_flag 是管理行为</strong>（记录误建），统计一律过滤 <code>del_flag='0' AND log_status='1'</code>。
+    </div>
+  </div>
+
+  <!-- ================= biz_finance_category ================= -->
+  <div class="card">
+    <h3>4.4 biz_finance_category　收支类别表</h3>
+    <p><strong>用途：</strong>收入与支出的分类树（与 <code>sys_dept</code> 同构的父子结构）。支出侧覆盖「硬件设备 / 云服务 / 软件订阅 / 外包人力 / 差旅 / 推广」等成本科目，收入侧覆盖「项目收款 / 预付款 / 尾款」。<code>sys_default='Y'</code> 的系统预置项禁止删除。</p>
+    <table>
+      <thead><tr><th style="width:170px">字段名</th><th style="width:130px">类型</th><th style="width:70px">允许空</th><th style="width:90px">默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>category_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT(20) AUTO_INCREMENT</td><td>否</td><td>—</td><td>类别主键</td></tr>
+        <tr><td><code>parent_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>0</td><td>父类别 → 本表 <code>category_id</code>，0 = 顶级</td></tr>
+        <tr><td><code>ancestors</code></td><td>VARCHAR(500)</td><td>是</td><td>''</td><td>祖级列表</td></tr>
+        <tr><td><code>category_name</code></td><td>VARCHAR(50)</td><td>否</td><td>—</td><td>类别名称</td></tr>
+        <tr><td><code>category_type</code></td><td>CHAR(1)</td><td>否</td><td>—</td><td>适用方向（0收入 1支出），保证收入/支出各维护一棵树</td></tr>
+        <tr><td><code>sys_default</code></td><td>CHAR(1)</td><td>是</td><td>'N'</td><td>是否系统预置（Y/N），预置项禁止删除以避免历史流水失去类别</td></tr>
+        <tr><td><code>order_num / status / del_flag / BaseEntity 5 字段</code></td><td>—</td><td>是</td><td>—</td><td>同项目表</td></tr>
+      </tbody>
+    </table>
+    <h4>索引</h4>
+    <ul>
+      <li><code>idx_fc_type(category_type, status)</code> —— 记账页按收入/支出方向加载类别下拉</li>
+      <li><code>idx_fc_parent(parent_id)</code> —— 树形加载</li>
+    </ul>
+  </div>
+
+  <!-- ================= biz_finance_record ================= -->
+  <div class="card">
+    <h3>4.5 biz_finance_record　收支流水表 <span class="tag t-money">核心表</span></h3>
+    <p><strong>用途：</strong>记录每个项目的收入（收款金额）与成本投入（硬件/服务等）。<strong>金额恒存正数</strong>，方向由 <code>record_type</code> 决定，于是任一维度的净额都能写成统一的 <code>SUM(CASE WHEN record_type='0' THEN amount ELSE -amount END)</code>，无需维护两套表。</p>
+    <table>
+      <thead><tr><th style="width:170px">字段名</th><th style="width:130px">类型</th><th style="width:70px">允许空</th><th style="width:90px">默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>record_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT(20) AUTO_INCREMENT</td><td>否</td><td>—</td><td>流水主键</td></tr>
+        <tr><td><code>record_no</code> <span class="badge b-uk">UK</span></td><td>VARCHAR(64)</td><td>否</td><td>—</td><td>流水号（如 <code>BK20261008001</code>），唯一，用于幂等与对账</td></tr>
+        <tr><td><code>user_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td><strong>否</strong></td><td>—</td><td>记账人 → <code>sys_user.user_id</code></td></tr>
+        <tr><td><code>dept_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>冗余部门 ID，供数据权限过滤</td></tr>
+        <tr><td><code>project_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>项目 → <code>biz_project.project_id</code>（NULL = 公司公共开支）</td></tr>
+        <tr><td><code>task_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>任务 → <code>biz_task.task_id</code>，可把成本精确归集到任务</td></tr>
+        <tr><td><code>category_id</code> <span class="badge b-fk">FK</span></td><td>BIGINT(20)</td><td>是</td><td>NULL</td><td>收支类别 → <code>biz_finance_category.category_id</code></td></tr>
+        <tr><td><code>record_type</code></td><td>CHAR(1)</td><td><strong>否</strong></td><td>'0'</td><td><strong>收支类型</strong>，字典 <code>biz_record_type</code>（0收入 1支出）</td></tr>
+        <tr><td><code>amount</code></td><td>DECIMAL(12,2)</td><td><strong>否</strong></td><td>0.00</td><td>金额（元），<strong>恒为正数</strong>。上限约 99 亿，满足个人/小团队场景</td></tr>
+        <tr><td><code>tax_amount</code></td><td>DECIMAL(12,2)</td><td>是</td><td>0.00</td><td>税额（元）</td></tr>
+        <tr><td><code>currency</code></td><td>CHAR(3)</td><td>是</td><td>'CNY'</td><td>币种（ISO 4217），为跨币种外包预留</td></tr>
+        <tr><td><code>record_date</code></td><td>DATE</td><td><strong>否</strong></td><td>—</td><td>发生日期（统计维度；与 create_time 的区别：补记账时两者不同）</td></tr>
+        <tr><td><code>pay_method</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>结算方式，字典 <code>biz_pay_method</code>（0微信 1支付宝 2银行 3现金 4其他）</td></tr>
+        <tr><td><code>settle_status</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>结算状态，字典 <code>biz_settle_status</code>（0已结清 1部分结算 2未结算）</td></tr>
+        <tr><td><code>settled_amount</code></td><td>DECIMAL(12,2)</td><td>是</td><td>0.00</td><td>已结算金额，支持分期收付款场景（应收/应付管理）</td></tr>
+        <tr><td><code>trade_no</code></td><td>VARCHAR(64)</td><td>是</td><td>NULL</td><td>第三方交易号/支付流水号（微信支付单号等），对账用</td></tr>
+        <tr><td><code>counterparty</code></td><td>VARCHAR(100)</td><td>是</td><td>''</td><td>往来对象（客户 / 供应商 / 平台）</td></tr>
+        <tr><td><code>invoice_no</code></td><td>VARCHAR(64)</td><td>是</td><td>''</td><td>发票号</td></tr>
+        <tr><td><code>voucher_url</code></td><td>VARCHAR(500)</td><td>是</td><td>''</td><td>凭证图片地址（小程序拍照上传后回填 <code>CommonController</code> 返回的 URL）</td></tr>
+        <tr><td><code>source</code></td><td>CHAR(1)</td><td>是</td><td>'0'</td><td>来源（0 PC 端 1 微信小程序）</td></tr>
+        <tr><td><code>del_flag</code> / <code>BaseEntity 5 字段</code></td><td>—</td><td>是</td><td>'0'</td><td>同项目表</td></tr>
+      </tbody>
+    </table>
+    <h4>索引</h4>
+    <ul>
+      <li><span class="badge b-uk">UK</span> <code>uk_record_no(record_no)</code> —— 流水号唯一，接口重试幂等</li>
+      <li><code>idx_fr_user_date(user_id, record_date)</code> —— 「我的账单」按日期区间查询</li>
+      <li><code>idx_fr_project_date(project_id, record_date)</code> —— <strong>项目盈亏测算的主力索引</strong>（WHERE project_id + 日期范围）</li>
+      <li><code>idx_fr_type_date(record_type, record_date)</code> —— 收支方向 + 时间段的汇总/报表</li>
+      <li><code>idx_fr_category(category_id)</code>、<code>idx_fr_trade_no(trade_no)</code>、<code>idx_fr_dept(dept_id)</code></li>
+    </ul>
+  </div>
+
+  <!-- ================= 可选表 ================= -->
+  <div class="grid2">
+    <div class="card">
+      <h3>4.6 biz_project_member　项目成员表 <span class="tag t-opt">可选</span></h3>
+      <p><strong>用途：</strong>单人自用可省略；多人协作时需要它回答两个问题 ——「谁能给这个项目打卡」和「这个人在这个项目上的时薪是多少」。时间费率放在成员维度而非全局，才能支持不同项目不同报价。</p>
+      <table>
+        <thead><tr><th style="width:130px">字段名</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>member_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT 自增</td></tr>
+          <tr><td><code>project_id</code> <span class="badge b-fk">FK</span></td><td>→ biz_project.project_id</td></tr>
+          <tr><td><code>user_id</code> <span class="badge b-fk">FK</span></td><td>→ sys_user.user_id</td></tr>
+          <tr><td><code>role_type</code></td><td>CHAR(1)：0负责人 1成员 2观察者</td></tr>
+          <tr><td><code>hour_rate</code></td><td>DECIMAL(10,2) 成员时薪，0 表示取项目默认时薪</td></tr>
+          <tr><td><code>join_date / quit_date</code></td><td>DATE 参与区间</td></tr>
+          <tr><td>其余</td><td>status / del_flag / BaseEntity 5 字段</td></tr>
+        </tbody>
+      </table>
+      <p><span class="badge b-uk">UK</span> <code>uk_pm_project_user(project_id, user_id)</code>　<span class="badge b-fk">FK</span> <code>idx_pm_user(user_id, status)</code></p>
+    </div>
+    <div class="card">
+      <h3>4.7 biz_user_wx　微信绑定表 <span class="tag t-opt">可选</span></h3>
+      <p><strong>用途：</strong>小程序登录（<code>wx.login</code> 换 <code>openid</code>）需要把微信身份落到 <code>sys_user</code> 上。RuoYi 原生 <code>sys_user</code> 没有 <code>openid</code> 字段，<strong>推荐用独立表而不是 ALTER 原生表</strong> —— 升级 RuoYi 版本时不会被覆盖，也便于一个用户绑定多个小程序。</p>
+      <table>
+        <thead><tr><th style="width:130px">字段名</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>wx_id</code> <span class="badge b-pk">PK</span></td><td>BIGINT 自增</td></tr>
+          <tr><td><code>user_id</code> <span class="badge b-fk">FK</span></td><td>→ sys_user.user_id</td></tr>
+          <tr><td><code>appid</code></td><td>VARCHAR(64) 小程序 AppID</td></tr>
+          <tr><td><code>openid</code></td><td>VARCHAR(64) 单小程序内唯一</td></tr>
+          <tr><td><code>unionid</code></td><td>VARCHAR(64) 开放平台统一标识（可空）</td></tr>
+          <tr><td><code>nick_name / avatar_url</code></td><td>微信昵称、头像</td></tr>
+          <tr><td><code>bind_time / last_login_time</code></td><td>绑定与最近登录时间</td></tr>
+          <tr><td>其余</td><td>status / del_flag / BaseEntity 5 字段</td></tr>
+        </tbody>
+      </table>
+      <p><span class="badge b-uk">UK</span> <code>uk_wx_appid_openid(appid, openid)</code>　<span class="badge b-fk">FK</span> <code>idx_wx_user(user_id)</code></p>
+    </div>
+  </div>
+
+  <h2>五、与 RuoYi 现有表的关联方式</h2>
+
+  <div class="card">
+    <h3>5.1 用户与部门：复用鉴权与数据权限</h3>
+    <table>
+      <thead><tr><th style="width:200px">业务表字段</th><th style="width:200px">关联 RuoYi 表</th><th>关联方式与用途</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>biz_project.owner_id</code><br><code>biz_task.assignee_id</code><br><code>biz_work_log.user_id</code><br><code>biz_finance_record.user_id</code><br><code>biz_project_member.user_id</code></td>
+          <td><code>sys_user.user_id</code><br>(BIGINT ← BIGINT)</td>
+          <td>存 RuoYi 用户主键。写入时由 <code>SecurityUtils.getUserId()</code> 自动取值；列表展示需要昵称/头像时，用 <code>LEFT JOIN sys_user u ON u.user_id = w.user_id</code> 取 <code>nick_name</code>，或在前端用用户下拉的 <code>sys_user</code> 缓存回填</td>
+        </tr>
+        <tr>
+          <td><code>biz_project.dept_id</code><br><code>biz_work_log.dept_id</code><br><code>biz_finance_record.dept_id</code></td>
+          <td><code>sys_dept.dept_id</code></td>
+          <td>写入时从 <code>SysUser.getDeptId()</code> 冗余落库，列表查询时通过 <code>BaseEntity.params.dataScope</code> 拼接，配合 <code>@DataScope(deptAlias = "d", userAlias = "u")</code> 实现「部门及以下」数据隔离</td>
+        </tr>
+        <tr>
+          <td><code>create_by</code> / <code>update_by</code></td>
+          <td><code>sys_user.user_name</code><br>(VARCHAR ← VARCHAR)</td>
+          <td>RuoYi 原生约定：存<strong>用户名字符串而非 ID</strong>，由 <code>BaseController</code> / MyBatis 拦截自动填充，直接复用 <code>BaseEntity</code> 即可</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>数据权限落地示例（工时打卡列表）</h4>
+<pre>&lt;!-- BizWorkLogMapper.xml --&gt;
+&lt;sql id="selectWorkLogVo"&gt;
+  select w.log_id, w.user_id, w.project_id, w.task_id, w.log_date, w.start_time,
+         w.end_time, w.duration, w.log_type, w.log_status, w.content,
+         p.project_name, t.task_name, u.nick_name as user_name
+  from biz_work_log w
+  left join biz_project p on p.project_id = w.project_id and p.del_flag = '0'
+  left join biz_task    t on t.task_id    = w.task_id    and t.del_flag = '0'
+  left join sys_user    u on u.user_id    = w.user_id
+&lt;/sql&gt;
+
+&lt;select id="selectWorkLogList" resultMap="BizWorkLogResult"&gt;
+  &lt;include refid="selectWorkLogVo"/&gt;
+  &lt;where&gt;
+    w.del_flag = '0'
+    &lt;if test="userId != null"&gt; and w.user_id = #{userId} &lt;/if&gt;
+    &lt;if test="projectId != null"&gt; and w.project_id = #{projectId} &lt;/if&gt;
+    &lt;if test="params.beginLogDate != null and params.beginLogDate != ''"&gt;
+      and w.log_date &gt;= #{params.beginLogDate}
+    &lt;/if&gt;
+    &lt;if test="params.endLogDate != null and params.endLogDate != ''"&gt;
+      and w.log_date &lt;= #{params.endLogDate}
+    &lt;/if&gt;
+    &lt;!-- 部门数据权限：Service 层通过 @DataScope(deptAlias = "w") 注入 --&gt;
+    ${params.dataScope}
+  &lt;/where&gt;
+  order by w.log_date desc, w.start_time desc
+&lt;/select&gt;</pre>
+  </div>
+
+  <div class="card">
+    <h3>5.2 字典：复用 sys_dict_type / sys_dict_data</h3>
+    <p>所有枚举值不建独立表，直接进 RuoYi 字典，前端 <code>&lt;dict-tag&gt;</code> 与 <code>useDict()</code> 开箱即用。脚本已预置 8 组：</p>
+    <table>
+      <thead><tr><th style="width:220px">字典类型</th><th style="width:200px">使用字段</th><th>取值</th></tr></thead>
+      <tbody>
+        <tr><td><code>biz_project_status</code></td><td>biz_project.status</td><td>0进行中 / 1已完成 / 2已暂停 / 3已归档</td></tr>
+        <tr><td><code>biz_project_type</code></td><td>biz_project.project_type</td><td>1自研产品 / 2客户外包 / 3内部事务</td></tr>
+        <tr><td><code>biz_task_status</code></td><td>biz_task.status</td><td>0待处理 / 1进行中 / 2已完成 / 3已取消</td></tr>
+        <tr><td><code>biz_task_priority</code></td><td>biz_task.priority</td><td>0高 / 1中 / 2低</td></tr>
+        <tr><td><code>biz_work_log_type</code></td><td>biz_work_log.log_type</td><td>0计时器 / 1手动补录</td></tr>
+        <tr><td><code>biz_record_type</code></td><td>biz_finance_record.record_type</td><td>0收入 / 1支出</td></tr>
+        <tr><td><code>biz_pay_method</code></td><td>biz_finance_record.pay_method</td><td>0微信 / 1支付宝 / 2银行转账 / 3现金 / 4其他</td></tr>
+        <tr><td><code>biz_settle_status</code></td><td>biz_finance_record.settle_status</td><td>0已结清 / 1部分结算 / 2未结算</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>5.3 权限：复用 sys_role / sys_menu / sys_user_role</h3>
+    <p>脚本已在 <code>sys_menu</code> 下新增父菜单 <strong>记账管理（menu_id = 2000）</strong> 及 6 个页面、22 个按钮权限，权限标识统一为 <code>biz:[模块]:[操作]</code>。把菜单 <code>2000</code> 勾给角色即可（单人自用可直接授权给内置 <code>admin</code> 或新建 <code>记账管理员</code> 角色）。</p>
+    <table>
+      <thead><tr><th style="width:150px">菜单</th><th style="width:300px">权限标识</th><th>对应表</th></tr></thead>
+      <tbody>
+        <tr><td>项目管理</td><td><code>biz:project:list / query / add / edit / remove / export</code></td><td>biz_project</td></tr>
+        <tr><td>任务管理</td><td><code>biz:task:list / query / add / edit / remove</code></td><td>biz_task</td></tr>
+        <tr><td>工时打卡</td><td><code>biz:worklog:list / query / add / edit / remove / export</code></td><td>biz_work_log</td></tr>
+        <tr><td>收支记账</td><td><code>biz:finance:list / query / add / edit / remove / export</code></td><td>biz_finance_record</td></tr>
+        <tr><td>收支类别</td><td><code>biz:category:list / query / add / edit / remove</code></td><td>biz_finance_category</td></tr>
+        <tr><td>报表统计</td><td><code>biz:report:list / export</code></td><td>聚合查询</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>5.4 其他 RuoYi 能力对接</h3>
+    <ul>
+      <li><strong>代码生成器（ruoyi-generator）</strong>：导入 <code>biz_*</code> 表后，把生成模板的「编辑」列去掉 <code>user_id / dept_id / del_flag</code>，其余字段按 <code>biz_</code> 前缀生成 Controller/Service/Mapper 与 Vue 页面，命名空间自动为 <code>biz:project:*</code> 风格。</li>
+      <li><strong>定时任务（ruoyi-quartz）</strong>：建议加两个 job —— ① 每天 00:05 把 <code>log_status='0'</code> 且 <code>start_time</code> 超过 12 小时的僵尸计时器自动结束；② 每天凌晨回写 <code>biz_task.actual_hours</code>。</li>
+      <li><strong>操作日志（sys_oper_log）</strong>：Controller 方法加 <code>@Log(title = "工时打卡", businessType = BusinessType.INSERT)</code>，打卡与记账这类敏感操作自动留痕。</li>
+      <li><strong>文件上传</strong>：收支凭证走 RuoYi <code>CommonController#uploadFile</code>，返回 URL 存入 <code>voucher_url</code>。</li>
+      <li><strong>导出（POI）</strong>：实体字段加 <code>@Excel(name = "时长(小时)")</code>；<code>duration</code> 建议在 Service 层转换为小时后再导出。</li>
+    </ul>
+  </div>
+
+  <h2>六、关键业务约束与应用层要点</h2>
+  <div class="card">
+    <h3>6.1 计时器「开始 / 结束」的落库流程</h3>
+    <table>
+      <thead><tr><th style="width:110px">动作</th><th style="width:230px">数据库操作</th><th>应用层校验</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>开始打点</td>
+          <td><code>INSERT biz_work_log (user_id, dept_id, project_id, task_id, log_date, start_time, duration=0, log_type='0', log_status='0')</code></td>
+          <td>① 先查 Redis <code>worklog:running:{userId}</code>，存在则直接复用；② 唯一索引 <code>uk_running_user</code> 兜底并发的重复插入</td>
+        </tr>
+        <tr>
+          <td>结束打点</td>
+          <td><code>UPDATE biz_work_log SET end_time=?, duration=?, log_status='1', update_by=?, update_time=? WHERE log_id=? AND log_status='0' AND user_id=?</code></td>
+          <td>① <strong>WHERE 必须带 <code>user_id</code></strong>，防止越权结束他人计时器；② <code>duration = TIMESTAMPDIFF(SECOND, start_time, end_time)</code>，跨零点按规则切分（可按 24:00 拆成两条）；③ 若 duration &lt; 60 秒，提示用户确认是否误点</td>
+        </tr>
+        <tr>
+          <td>手动补录</td>
+          <td><code>INSERT ... (log_type='1', log_status='1', duration=7200, log_date='2026-10-08')</code></td>
+          <td>时长必填且 &gt; 0；<code>log_date</code> 默认当天，禁止补录未来日期；同一项目同一天可多条累加</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>6.2 「一人同时仅一个进行中计时器」的数据库兜底</h3>
+<pre>-- 生成列：仅当 log_status='0' 时值为 user_id，其余为 NULL（NULL 不参与唯一约束）
+running_user VARCHAR(32) GENERATED ALWAYS AS (IF(log_status = '0', CAST(user_id AS CHAR), NULL)) VIRTUAL,
+UNIQUE KEY uk_running_user (running_user)</pre>
+    <p>MySQL 中多个 NULL 不冲突，因此历史记录可以无限多，但「进行中」的记录每人最多一条。Redis 承担第一道拦截（性能），唯一索引承担最后一道（正确性）。</p>
+
+    <h3>6.3 三个必须守住的统计口径</h3>
+    <ul>
+      <li><strong>工时统计</strong>：一律 <code>WHERE del_flag='0' AND log_status='1'</code>，且按 <code>log_date</code> 而非 <code>start_time</code> 过滤，避免跨零点记录漏统计。</li>
+      <li><strong>金额统计</strong>：<code>SUM(CASE WHEN record_type='0' THEN amount ELSE -amount END)</code> 得净额；只看收入/成本时分别加 <code>record_type</code> 条件，<code>amount</code> 永远是正数。</li>
+      <li><strong>项目盈亏</strong>：收入 − 直接成本 = 毛利；再减去「工时 × 时薪」得人力成本后的净值，才是真实利润。工时成本建议做成计算列而非落库，避免数据双写不一致。</li>
+    </ul>
+<pre>-- 项目盈亏 + 工时成本一屏出结果
+SELECT p.project_id, p.project_name,
+       IFNULL(SUM(CASE WHEN f.record_type = '0' THEN f.amount END), 0)                          AS income_total,
+       IFNULL(SUM(CASE WHEN f.record_type = '1' THEN f.amount END), 0)                          AS cost_total,
+       ROUND(IFNULL(wl.hours, 0), 2)                                                            AS work_hours,
+       ROUND(IFNULL(wl.hours, 0) * p.hour_rate, 2)                                              AS labor_cost,
+       IFNULL(SUM(CASE WHEN f.record_type = '0' THEN f.amount ELSE -f.amount END), 0)
+         - ROUND(IFNULL(wl.hours, 0) * p.hour_rate, 2)                                          AS net_profit
+FROM biz_project p
+LEFT JOIN biz_finance_record f ON f.project_id = p.project_id AND f.del_flag = '0'
+LEFT JOIN (SELECT project_id, SUM(duration) / 3600 AS hours
+           FROM biz_work_log WHERE del_flag = '0' AND log_status = '1'
+           GROUP BY project_id) wl ON wl.project_id = p.project_id
+WHERE p.del_flag = '0'
+GROUP BY p.project_id, p.project_name, p.hour_rate;</pre>
+  </div>
+
+  <div class="card">
+    <h3>6.4 小程序端接口与表的映射建议</h3>
+    <table>
+      <thead><tr><th style="width:290px">小程序接口</th><th style="width:230px">涉及表</th><th>要点</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /wx/login</code></td><td>biz_user_wx + sys_user</td><td>openid 查绑定 → 未绑定走注册/绑定流程，签发 RuoYi JWT</td></tr>
+        <tr><td><code>GET /wx/project/list</code></td><td>biz_project (+ member)</td><td>进行中项目置顶，多人场景按 member 过滤</td></tr>
+        <tr><td><code>POST /wx/worklog/start</code></td><td>biz_work_log</td><td>返回 log_id，前端本地起 tick 只做展示，真实时长以服务端 end_time 为准</td></tr>
+        <tr><td><code>POST /wx/worklog/stop</code></td><td>biz_work_log</td><td>回填 duration + log_status，同时刷新项目/任务工时</td></tr>
+        <tr><td><code>POST /wx/worklog/manual</code></td><td>biz_work_log</td><td>补录：duration 必填，log_type='1'</td></tr>
+        <tr><td><code>GET /wx/worklog/today</code></td><td>biz_work_log</td><td>复用 <code>idx_wl_user_date</code>，当天汇总 + 列表一次返回</td></tr>
+        <tr><td><code>POST /wx/finance/add</code></td><td>biz_finance_record</td><td>record_no 服务端生成（唯一索引保证幂等），凭证先传文件再提交</td></tr>
+        <tr><td><code>GET /wx/report/overview</code></td><td>聚合查询</td><td>今日工时、本月收支、项目 TopN 盈亏</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <strong>小程序侧提醒：</strong>所有请求域名需在微信后台配置白名单并使用 HTTPS；<code>duration</code> 由服务端计算，不要信任前端上报的秒数，防止计时被篡改。
+    </div>
+  </div>
+
+  <h2>七、交付物</h2>
+  <div class="card">
+    <ul>
+      <li><code>sql/book_keep_biz.sql</code> —— 完整建表脚本：7 张业务表 DDL + 8 组字典数据 + 11 个收支类别 + 菜单/按钮权限 + 统计 SQL 示例 + 可选物理外键脚本（默认注释）。<strong>在 <code>book_keep</code> 库中执行一次即可</strong>（脚本不含 RuoYi 基础表，需先导入 RuoYi 3.9.2 官方 SQL）。</li>
+      <li>本文档 —— 表用途、字段字典、主外键与索引说明、与 RuoYi 现有表的关联方式、业务约束与接口映射。</li>
+    </ul>
+    <p>建议落地顺序：① 执行 SQL 建表 → ② 建立字典与菜单 → ③ 用 RuoYi 代码生成器生成 CRUD 骨架 → ④ 在 Service 层补齐计时器与盈亏统计逻辑。</p>
+  </div>
+
+</div>
+</body>
+</html>

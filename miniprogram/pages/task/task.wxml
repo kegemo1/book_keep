@@ -1,0 +1,85 @@
+<view class="container">
+
+  <view class="head-note" wx:if="{{tasks.length === 0 && !loading}}">
+    <view class="empty-icon">◫</view>
+    <text>任务是项目下的二级维度。打卡时选了任务，就能统计「这件事花了多少小时」。</text>
+  </view>
+
+  <view class="task" wx:for="{{tasks}}" wx:key="taskId">
+    <!-- 左侧优先级色条：比整块染色更安静 -->
+    <view class="task-strip {{item.priorityText === '高' ? 'is-high' : (item.priorityText === '中' ? 'is-mid' : 'is-low')}}"></view>
+
+    <view class="task-main">
+      <view class="task-head">
+        <text class="task-name {{item.isDone ? 'is-done' : ''}}">{{item.taskName}}</text>
+        <view class="task-status {{item.isDone ? 'is-done' : (item.isTodo ? 'is-todo' : 'is-doing')}}">{{item.statusText}}</view>
+      </view>
+
+      <view class="task-meta">
+        <text class="prio {{item.priorityText === '高' ? 'is-high' : (item.priorityText === '中' ? 'is-mid' : '')}}">{{item.priorityText}}优先</text>
+        <text class="meta-k">预估 <text class="figure">{{item.estimateHours || 0}}</text>h</text>
+        <text class="meta-k">实际 <text class="figure">{{item.actualHours || 0}}</text>h</text>
+      </view>
+
+      <view class="progress">
+        <view class="track">
+          <view class="fill {{item.isDone ? 'is-done' : ''}}" style="width: {{item.percent}}%"></view>
+        </view>
+        <text class="pct figure">{{item.percent}}%</text>
+      </view>
+
+      <view class="task-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+
+      <view class="task-ops">
+        <text class="op" data-id="{{item.taskId}}" bindtap="onToggleDone">{{item.isDone ? '重开' : '完成'}}</text>
+        <text class="op" data-id="{{item.taskId}}" bindtap="openEdit">编辑</text>
+        <text class="op is-danger" data-id="{{item.taskId}}" bindtap="onDelete">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+
+  <view class="fab" bindtap="openCreate">＋</view>
+
+</view>
+
+<!-- 新建 / 编辑 -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="sheet" wx:if="{{showForm}}">
+  <view class="sheet-handle"></view>
+  <view class="sheet-head">
+    <text class="sheet-title">{{isEdit ? '编辑任务' : '新建任务'}}</text>
+    <text class="sheet-close" bindtap="closeForm">关闭</text>
+  </view>
+
+  <view class="form-row">
+    <text class="label">任务名称</text>
+    <input class="value input-right" value="{{form.taskName}}" placeholder="如：完成支付接口" placeholder-class="ph" data-field="taskName" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">优先级</text>
+    <picker mode="selector" range="{{priorities}}" value="{{priorityIndex}}" bindchange="onPriorityChange">
+      <view class="value">{{priorities[priorityIndex]}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">预估工时</text>
+    <input class="value input-right" type="digit" value="{{form.estimateHours}}" placeholder="小时，可留空" placeholder-class="ph" data-field="estimateHours" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">进度</text>
+    <slider class="flex-1" value="{{form.progress}}" activeColor="#24352e" backgroundColor="#ece7de" block-size="20" show-value bindchange="onProgressChange" />
+  </view>
+
+  <view class="content-box">
+    <textarea class="content-input" placeholder="备注（可选）" placeholder-class="ph" maxlength="200" value="{{form.remark}}" data-field="remark" bindinput="onInput" auto-height />
+  </view>
+
+  <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="submitForm">
+    {{isEdit ? '保存修改' : '创建任务'}}
+  </view>
+</view>

@@ -1,0 +1,43 @@
+<view class="tc">
+  <view class="tc-head">
+    <text class="tc-kicker">计时器</text>
+    <view class="tc-state {{running ? 'is-on' : ''}}">
+      <view class="tc-dot"></view>
+      <text>{{running ? '进行中' : '待开始'}}</text>
+    </view>
+  </view>
+
+  <view class="tc-time {{running ? '' : 'is-idle'}}">{{display}}</view>
+
+  <block wx:if="{{running}}">
+    <view class="tc-meta">
+      <view class="tc-meta-row">
+        <text class="tc-k">项目</text>
+        <text class="tc-v">{{running.projectName || '未归类'}}</text>
+      </view>
+      <view class="tc-meta-row" wx:if="{{running.taskName}}">
+        <text class="tc-k">任务</text>
+        <text class="tc-v">{{running.taskName}}</text>
+      </view>
+      <view class="tc-meta-row" wx:if="{{running.content}}">
+        <text class="tc-k">内容</text>
+        <text class="tc-v">{{running.content}}</text>
+      </view>
+      <view class="tc-meta-row">
+        <text class="tc-k">开始</text>
+        <text class="tc-v">{{running.startTime}}</text>
+      </view>
+    </view>
+
+    <view class="tc-tip" wx:if="{{overtime}}">本次已超过 12 小时，服务端可能已自动结束</view>
+
+    <view class="tc-btns">
+      <view class="tc-btn is-primary" bindtap="onStop">结束并记录</view>
+      <view class="tc-btn is-ghost" bindtap="onDiscard">丢弃</view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="tc-hint">还没有进行中的计时，选好项目即可开始</view>
+  </block>
+</view>

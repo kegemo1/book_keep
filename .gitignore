@@ -1,0 +1,24 @@
+# ===== 真实配置只保留在本地，仓库里只有 .example 模板 =====
+server/ruoyi-admin/src/main/resources/application-dev.yml
+server/ruoyi-admin/src/main/resources/application-pro.yml
+miniprogram/utils/config.js
+
+# ===== Java / Maven =====
+server/**/target/
+server/logs/
+*.iml
+*.class
+*.jar
+!**/maven-wrapper.jar
+
+# ===== 运行产物 =====
+uploadPath/
+logs/
+*.log
+
+# ===== IDE / 系统 =====
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

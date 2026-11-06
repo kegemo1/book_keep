@@ -1,0 +1,188 @@
+<view class="container">
+
+  <!-- 总览 -->
+  <view class="summary">
+    <view class="row-between">
+      <text class="label-mono">项目总览</text>
+      <text class="summary-count">{{list.length}} 个在管</text>
+    </view>
+
+    <view class="summary-net">
+      <text class="net-k">净利润</text>
+      <text class="net-v figure {{totalNetNegative ? 'is-neg' : ''}}">¥{{totalNet}}</text>
+    </view>
+
+    <view class="summary-pair">
+      <view class="pair-cell">
+        <view class="pair-cap"><view class="dot"></view><text>收入</text></view>
+        <text class="pair-v money-in figure">¥{{totalIncome}}</text>
+      </view>
+      <view class="money-divider"></view>
+      <view class="pair-cell">
+        <view class="pair-cap is-out"><view class="dot"></view><text>成本</text></view>
+        <text class="pair-v money-out figure">¥{{totalCost}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 项目卡片 -->
+  <view class="proj" wx:for="{{list}}" wx:key="projectId">
+    <view class="proj-head">
+      <view class="proj-titles">
+        <view class="proj-name">{{item.projectName}}</view>
+        <view class="proj-sub">
+          <text>{{item.customerName || '未填客户'}}</text>
+          <text wx:if="{{item.projectCode}}" class="proj-code">{{item.projectCode}}</text>
+        </view>
+      </view>
+      <view class="status-pill {{item.status === '0' ? 'is-on' : ''}}">{{item.statusText}}</view>
+    </view>
+
+    <view class="proj-meta">
+      <text>预算 ¥{{item.budgetText}}</text>
+      <text>时薪 ¥{{item.hourRate}}/h</text>
+    </view>
+
+    <!-- 收入 vs 成本 -->
+    <view class="bar-chart" wx:if="{{item.hasData}}">
+      <view class="bar-row">
+        <text class="bar-k">收</text>
+        <view class="bar-track"><view class="bar-fill is-in" style="width:{{item.incomeBar}}%"></view></view>
+        <text class="bar-amt figure is-in">{{item.incomeText}}</text>
+      </view>
+      <view class="bar-row">
+        <text class="bar-k">支</text>
+        <view class="bar-track"><view class="bar-fill is-out" style="width:{{item.costBar}}%"></view></view>
+        <text class="bar-amt figure is-out">{{item.costText}}</text>
+      </view>
+    </view>
+
+    <!-- 六项指标 -->
+    <view class="no-data" wx:if="{{!item.hasData}}">
+      还没有收支与工时记录，记一笔或打个卡后这里会自动核算
+    </view>
+
+    <view class="metrics">
+      <view class="metric">
+        <text class="m-k">收入</text>
+        <text class="m-v money-in figure">{{item.incomeText}}</text>
+      </view>
+      <view class="metric">
+        <text class="m-k">直接成本</text>
+        <text class="m-v money-out figure">{{item.costText}}</text>
+      </view>
+      <view class="metric">
+        <text class="m-k">毛利</text>
+        <text class="m-v figure">{{item.grossText}}</text>
+      </view>
+      <view class="metric">
+        <text class="m-k">工时</text>
+        <text class="m-v figure">{{item.workHours}}<text class="m-u">h</text></text>
+      </view>
+      <view class="metric">
+        <text class="m-k">人力成本</text>
+        <text class="m-v figure">{{item.laborText}}</text>
+      </view>
+      <view class="metric">
+        <text class="m-k">净利润</text>
+        <text class="m-v figure {{item.netNegative ? 'money-out' : 'money-in'}}">{{item.netText}}</text>
+      </view>
+    </view>
+
+    <!-- 预算使用率 -->
+    <view class="budget" wx:if="{{item.budgetUsedRate}}">
+      <view class="row-between budget-head">
+        <text class="budget-k">预算使用 {{item.budgetUsedRate}}%</text>
+        <text class="budget-flag" wx:if="{{item.overBudget}}">已超预算</text>
+      </view>
+      <view class="budget-track">
+        <view class="budget-fill {{item.overBudget ? 'is-over' : ''}}" style="width: {{item.budgetPercent}}%"></view>
+      </view>
+    </view>
+
+    <view class="proj-foot">
+      <text class="foot-rate">毛利率 {{item.grossRate}}% · 净利率 {{item.netRate}}%</text>
+      <text class="foot-receivable">应收 {{item.receivableText}}</text>
+    </view>
+
+    <view class="proj-ops">
+      <text class="op" data-id="{{item.projectId}}" data-name="{{item.projectName}}" bindtap="goTask">任务</text>
+      <text class="op" data-id="{{item.projectId}}" bindtap="openEdit">编辑</text>
+      <text class="op is-danger" data-id="{{item.projectId}}" data-name="{{item.projectName}}" bindtap="onDelete">删除</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!list.length && !loading}}" class="empty">
+    <view class="empty-icon">◫</view>
+    还没有项目，点右下角 + 新建一个
+  </view>
+
+  <view class="tip">核算口径：毛利 = 收入 − 直接成本；人力成本 = 工时 × 时薪；净利润 = 毛利 − 人力成本</view>
+
+  <view class="fab" bindtap="openCreate">＋</view>
+
+</view>
+
+<!-- 新建 / 编辑项目 -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="sheet" wx:if="{{showForm}}">
+  <view class="sheet-handle"></view>
+  <view class="sheet-head">
+    <text class="sheet-title">{{isEdit ? '编辑项目' : '新建项目'}}</text>
+    <text class="sheet-close" bindtap="closeForm">关闭</text>
+  </view>
+
+  <view class="form-row">
+    <text class="label">项目名称</text>
+    <input class="value input-right" value="{{form.projectName}}" placeholder="请输入项目名称" placeholder-class="ph" data-field="projectName" bindinput="onInput" />
+  </view>
+
+  <view class="form-row" wx:if="{{!isEdit}}">
+    <text class="label">项目编号</text>
+    <input class="value input-right" value="{{form.projectCode}}" placeholder="如 PRJ-2026-001" placeholder-class="ph" data-field="projectCode" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">项目类型</text>
+    <picker mode="selector" range="{{typeNames}}" value="{{typeIndex}}" bindchange="onTypeChange">
+      <view class="value">{{typeNames[typeIndex]}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">客户名称</text>
+    <input class="value input-right" value="{{form.customerName}}" placeholder="可留空" placeholder-class="ph" data-field="customerName" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">预算(元)</text>
+    <input class="value input-right" type="digit" value="{{form.budgetAmount}}" placeholder="0.00" placeholder-class="ph" data-field="budgetAmount" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">时薪(元/h)</text>
+    <input class="value input-right" type="digit" value="{{form.hourRate}}" placeholder="用于折算人力成本" placeholder-class="ph" data-field="hourRate" bindinput="onInput" />
+  </view>
+
+  <view class="form-row">
+    <text class="label">开始日期</text>
+    <picker mode="date" value="{{form.startDate}}" data-field="startDate" bindchange="onDateChange">
+      <view class="value">{{form.startDate || '请选择'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-row">
+    <text class="label">计划交付</text>
+    <picker mode="date" value="{{form.planEndDate}}" data-field="planEndDate" bindchange="onDateChange">
+      <view class="value">{{form.planEndDate || '请选择'}}</view>
+    </picker>
+  </view>
+
+  <view class="content-box">
+    <textarea class="content-input" placeholder="备注（可选）" placeholder-class="ph" maxlength="200" value="{{form.remark}}" data-field="remark" bindinput="onInput" auto-height />
+  </view>
+
+  <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="submitForm">
+    {{isEdit ? '保存修改' : '创建项目'}}
+  </view>
+</view>
